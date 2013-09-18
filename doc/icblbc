@@ -1,0 +1,44 @@
+Isolated Complementary Binary Linear Block Codes
+
+ICBLBCs are binary linear block codes composed of sub-codes that feature
+isolation from each other.
+
+A binary linear block code encodes a certain number of data bits into a
+codeword of a certain length.  A codeword of n bits uniquely represents a block
+of k data bits. Binary linear block codes are often characterized by the
+minimum Hamming distance d between any two codewords.
+
+A sub-code is a code that consists of a subset of the codewords of a larger
+code. Complementary codes are non-overlapping sub-codes of the same larger
+code.
+
+An ICBLBC is a set of two or more complementary codes that feature isolation
+from each other.  Isolation means that there is a minimum Hamming distance from
+sub-code to sub-code. For isolation to be useful for unambiguous encapsulation,
+it must be larger than the minimum Hamming distance within each sub-code.
+
+This project seeks ICBLBCs consisting of only two sub-codes.
+
+
+Definitions
+
+The terms "Isolated Complementary Binary Linear Block Code", "ICBLBC",
+"complementary", "sub-code", and "isolation" as used in this description are my
+own. These terms are subject to change upon review of this description by
+members of the coding theory community.
+
+
+Example
+
+The following ICBLBC contains a total of eight codewords divided into two
+sub-codes of four codewords each:
+
+ - 00000, 00011, 00101, 01001
+ - 01110, 10110, 11010, 11100
+
+Each codeword is five bits long (n = 5). Within each sub-code, each codeword
+represents two data bits (k = 2). Considering the ICBLBC as a whole, each
+codeword represents three data bits (k = 3).
+
+The minimum Hamming distance within each sub-code is two. The minimum Hamming
+distance from one sub-code to the other (the isolation) is three.
