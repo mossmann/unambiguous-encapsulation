@@ -1,0 +1,30 @@
+ICBLBC Brute Force Search Results (C)
+
+The software (icblbc.c) implements a brute force search for Isolated
+Complementary Binary Linear Block Codes (ICBLBCs) written in C.  As configured
+in the initial commit (300e06f), the software is configured to search for
+ICBLBCs with a codeword length of 6 bits, minimum Hamming distance of 2, and
+minimum isolation of 3.  Simple changes to the source code permit varying these
+three parameters.
+
+The software performs a recursive search through the tree of all possible
+ICBLBCs.  For enhanced efficiency in finding the best codes of interest, it
+terminates branches that cannot yield results as good as those already found.
+In this context, "best" means the longest codes (consisting of the most
+codewords).  For example, if an ICBLBC is found with 13 codewords in the first
+sub-code and 7 codewords in the second sub-code, branches that can yield second
+sub-codes of no more than 6 are terminated.  When subsequently searching for
+ICBLBCs with fewer than 13 codewords in the first sub-code, branches that can
+yield second sub-codes of no more than 7 are not pursued.
+
+
+Testing
+
+Testing has been completed on the Linux operating system.  On a platform with a
+2.3 GHz Intel Core i3-2350M, the program completed in 12 seconds (operating on
+a single core).  Previous implementations written in Python failed to complete
+a similar search in several days.  (The extreme improvement probably has more
+to do with improved logic than execution efficiency.)  The longest codes found
+consist of 22 codewords in one sub-code and 2 codewords in the other sub-code.
+The longest codes found with equal length sub-codes consist of 10 codewords in
+each sub-code.
