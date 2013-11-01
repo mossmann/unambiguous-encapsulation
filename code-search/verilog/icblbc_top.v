@@ -168,13 +168,13 @@ usb2_top	iu2 (
 //	.disp_out	( HEX6 )
 //);
 
-io_seg7 is5 (
-	.disp_in	( vend_req_request[7:4] ),
-	.disp_out	( HEX5 )
-);
+//io_seg7 is5 (
+//	.disp_in	( vend_req_request[7:4] ),
+//	.disp_out	( HEX5 )
+//);
 
 io_seg7 is4 (
-	.disp_in	( vend_req_request[3:0] ),
+	.disp_in	( dist[3:0] ),
 	.disp_out	( HEX4 )
 );
 
@@ -198,13 +198,12 @@ io_seg7 is0 (
 	.disp_out	( HEX0 )
 );
 
-wire [7:0] dist;
+wire [3:0] dist;
 reg [7:0] ham_in_a, ham_in_b;
 //wire [7:0] ham_in_w;
 //assign ham_in_w = ham_in;
 
 hamming_distance hd (
-	.clock ( clk_50),
 	.val_a ( ham_in_a ),
 	.val_b ( ham_in_b ),
 	.distance (dist)
@@ -244,7 +243,7 @@ always @(posedge clk_50) begin
 	end
 	
 	10: begin
-		buf_in_data <= dist[7:0];
+		buf_in_data <= { 1'h0, dist[3:0] };
 		buf_in_addr <= 0;
 		buf_in_wren <= 1;
 		state <= 18;
