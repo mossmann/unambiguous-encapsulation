@@ -22,6 +22,7 @@
 //
 
 module hamming_distance (
+input wire clock,
 input wire [7:0] val_a, val_b,
 output reg [3:0] distance
 );
@@ -29,8 +30,8 @@ output reg [3:0] distance
 wire [7:0] bit_diff;
 assign bit_diff = val_a ^ val_b;
 
-always @(bit_diff) begin
-	case (bit_diff)
+always @(posedge clock) begin
+	case (clock)
 		0:  	distance <= 5'h0;
 		1:  	distance <= 5'h1;
 		2:  	distance <= 5'h1;
@@ -291,15 +292,119 @@ always @(bit_diff) begin
 end
 endmodule
 
-//module find_codes (
-//
+//module find_comp (
+//input wire clock
 //);
 //
 //hamming_distance hd (
-//	.clock ( clk_50),
+//	.clock ( clock),
 //	.val_a ( ham_in_a ),
 //	.val_b ( ham_in_b ),
 //	.distance (dist)
 //);
 //
 //endmodule
+
+
+module find_iso_from_start (
+input wire clock,
+input wire [7:0] start,
+input wire [7:0] n,
+input wire [7:0] min_hd,
+input wire [7:0] min_iso,
+input wire [7:0] a_len,
+input wire [7:0] min_b_len,
+input wire start_process
+);
+
+parameter MAX_N = 8;
+parameter MAX_CAND = 2**MAX_N;
+
+reg			[5:0]	state;
+parameter	[5:0]	ST_RST		= 6'h00,
+					ST_IDLE		= 6'h01;
+
+reg [7:0] code [MAX_CAND:0];
+reg [7:0] next_candidates [MAX_CAND:0];
+reg [7:0] next_b_candidates [MAX_CAND:0];
+
+wire [3:0] dist;
+reg [7:0] ham_in_a, ham_in_b;
+reg [8:0] count, icand;
+reg [8:0] inext_cand, inext_b_cand;
+
+reg start_process_1, start_process_2;
+
+hamming_distance hd (
+	.clock ( clock),
+	.val_a ( ham_in_a ),
+	.val_b ( ham_in_b ),
+	.distance (dist)
+);
+
+always @(posedge clock) begin
+	{start_process_2, start_process_1} <= {start_process_1, start_process};
+
+	case(state)
+	ST_RST: begin
+		state <= ST_IDLE;
+	end
+	
+	ST_IDLE: begin
+			if( start_process_2 ) begin
+				count <= 0;
+				icand <= 2**n;
+				state <= 3;
+				ham_in_a <= start;
+				code[0] <= start;
+			end
+			
+	end
+	
+	3: begin
+		ham_in_b <= count;
+		state <= 4;
+	end
+	
+	4: begin
+		// Delay for hamming distance to finish
+		state <= 5;
+	end
+	
+	5: begin
+		if ( dist >= min_hd ) begin
+			next_candidates[inext_cand] <= count;
+			inext_cand <= inext_cand + 1;
+		end
+		if ( dist >= min_iso ) begin
+			next_b_candidates[inext_b_cand] <= count;
+			inext_b_cand <= inext_b_cand + 1;
+		end
+		state <= 6;
+	end
+	
+	6: begin
+		count <= count + 1;
+		state <= 3;
+		if ( count >= icand ) begin
+			state <= 7;
+		end
+	end
+	
+	7: begin
+		// Trigger find_iso() module and wait for it to complete
+		state <= ST_IDLE;
+	end
+	
+	8: begin
+		state <= ST_IDLE;
+	end
+	
+	9: begin
+		state <= ST_IDLE;
+	end
+	
+	
+	endcase
+end
+endmodule

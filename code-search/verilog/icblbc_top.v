@@ -204,15 +204,19 @@ reg [7:0] ham_in_a, ham_in_b;
 //assign ham_in_w = ham_in;
 
 hamming_distance hd (
+	.clock ( clk_50 ),
 	.val_a ( ham_in_a ),
 	.val_b ( ham_in_b ),
 	.distance (dist)
 );
 
+find_iso_from_start fifs (
+		.clock ( clk_50 )
+);
+
 reg			[5:0]	state;
 parameter	[5:0]	ST_RST		= 6'h00,
-					ST_IDLE		= 6'h01,
-					ST_ACTIVE	= 6'h03;
+					ST_IDLE		= 6'h01;
 
 reg		buf_in_ready_1;
 reg		buf_in_commit_ack_1;
