@@ -292,6 +292,7 @@ always @(posedge clock) begin
 end
 endmodule
 
+
 //module find_comp (
 //input wire clock
 //);
@@ -306,6 +307,26 @@ endmodule
 //endmodule
 
 
+module find_iso (
+input wire [7:0] code [MAX_CAND:0],
+input wire [7:0] icode,
+input wire [7:0] candidates [MAX_CAND:0],
+input wire [7:0] icand,
+input wire [7:0] b_candidates [MAX_CAND:0],
+input wire [7:0] ib_cand,
+input wire [7:0] min_hd,
+input wire [7:0] min_iso,
+input wire [7:0] a_len,
+input wire [7:0] min_b_len,
+input wire [7:0] n,
+input wire [7:0] min_len
+);
+
+parameter MAX_N = 8;
+parameter MAX_CAND = 2**MAX_N;
+
+endmodule
+
 module find_iso_from_start (
 input wire clock,
 input wire [7:0] start,
@@ -314,7 +335,8 @@ input wire [7:0] min_hd,
 input wire [7:0] min_iso,
 input wire [7:0] a_len,
 input wire [7:0] min_b_len,
-input wire start_process
+input wire start_process,
+output wire complete
 );
 
 parameter MAX_N = 8;
