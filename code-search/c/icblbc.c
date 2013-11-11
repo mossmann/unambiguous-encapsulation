@@ -153,8 +153,6 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 		uint8_t min_iso, uint16_t a_len, uint16_t min_b_len)
 {
-	printf("find_iso_from_start(start %d, n %d, min_hd %d, min_iso %d, a_len %d, min_b_len %d)\n",
-		   start, n, min_hd, min_iso, a_len, min_b_len);
 	uint16_t code[MAX_CAND];
 	uint16_t next_candidates[MAX_CAND];
 	uint16_t next_b_candidates[MAX_CAND];
@@ -173,7 +171,6 @@ uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 		}
 	}
 
-	printf("inext_cand=%d, inext_b_cand=%d\n", inext_cand, inext_b_cand);
 	return find_iso(&code[0], 1, &next_candidates[0], inext_cand,
 			&next_b_candidates[0], inext_b_cand, min_hd,
 			min_iso, a_len, min_b_len, n, a_len + min_b_len);
