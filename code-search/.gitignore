@@ -1,0 +1,6 @@
+# C binary
+c/icblbc
+
+# Quartus output files
+verilog/db
+verilog/output
