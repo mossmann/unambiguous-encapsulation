@@ -59,11 +59,11 @@ uint16_t find_comp(uint16_t* a_code, uint16_t ia_code, uint16_t* b_code,
 				} else {
 					printf("%d %d %d [", ia_code + ib_code, ia_code, ib_code);
 					for (i = 0; i < (ia_code - 1); i++)
-						printf("%d,", *(a_code + i));
+						printf("%d, ", *(a_code + i));
 					printf("%d", *(a_code + ia_code - 1));
-					printf("][");
+					printf("] [");
 					for (i = 0; i < (ib_code - 1); i++)
-						printf("%d,", *(b_code + i));
+						printf("%d, ", *(b_code + i));
 					printf("%d", *(b_code + ib_code - 1));
 					printf("]\n");
 					if ((ia_code + ib_code) >= min_len)
@@ -75,17 +75,6 @@ uint16_t find_comp(uint16_t* a_code, uint16_t ia_code, uint16_t* b_code,
 	}
 	return longest;
 }
-
-/* find codes that are complementary to a given code */
-uint16_t complementary(uint16_t* a_code, uint16_t ia_code,
-		uint16_t* b_candidates, uint16_t ib_cand, uint8_t min_hd,
-		uint16_t min_b_len, uint8_t n, uint16_t min_len)
-{
-	uint16_t b_code[MAX_CAND];
-	return find_comp(a_code, ia_code, &b_code[0], 0, &b_candidates[0],
-			ib_cand, min_hd, min_b_len, min_len);
-}
-
 
 void populate_candidates(uint16_t code, uint16_t *candidates,
 					 uint16_t* next_candidates, uint16_t icand,
@@ -113,6 +102,7 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 		uint8_t min_hd, uint8_t min_iso, uint16_t a_len,
 		uint16_t min_b_len, uint8_t n, uint16_t min_len)
 {
+	//printf("find_iso icode=%d, icand=%d, ib_cand=%d\n", icode, icand, ib_cand);
 	uint16_t c;
 	uint16_t next_candidates[MAX_CAND];
 	uint16_t next_b_candidates[MAX_CAND];
@@ -134,8 +124,10 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 
 		if (((inext_cand + icode) >= a_len) && (inext_b_cand >= min_b_len)) {
 			if (icode == a_len) {
-				best_len = complementary(code, icode, &next_b_candidates[0],
-						inext_b_cand, min_hd, min_b_len, n, min_len);
+				uint16_t b_code[MAX_CAND];
+				best_len =  find_comp(code, icode, &b_code[0], 0,
+									  &next_b_candidates[0], inext_b_cand,
+									  min_hd, min_b_len, min_len);
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
@@ -219,5 +211,6 @@ int main(void)
 	//find_from_start(0, 6, 4);
 	//find_iso_from_start(0, 7, 2, 3, 60, 2);
 	//find_iso_from_start(0, 5, 2, 3, 4, 4);
-	find_best_iso(6, 2, 3);
+	//find_best_iso(6, 2, 3);
+	find_best_iso(5, 2, 3);
 }
