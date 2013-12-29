@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "TRACE.h"
 
 #define MAX_N    8
 #define MAX_CAND (1 << MAX_N)
@@ -28,8 +29,8 @@ uint16_t find_comp(uint16_t* a_code, uint16_t ia_code, uint16_t* b_code,
 		uint16_t ib_code, uint16_t* candidates, uint16_t icand,
 		uint8_t min_hd, uint16_t min_b_len, uint16_t min_len)
 {
-	printf("find_comp(ia_code %d, ib_code %d, icand %d, min_hd %d, min_b_len %d, min_len %d)\n",
-		   ia_code, ib_code, icand, min_hd, min_b_len, min_len);
+	//printf("find_comp(ia_code %d, ib_code %d, icand %d, min_hd %d, min_b_len %d, min_len %d)\n",
+	//	   ia_code, ib_code, icand, min_hd, min_b_len, min_len);
 	uint16_t c, nc;
 	uint16_t next_candidates[MAX_CAND];
 	uint16_t inext_cand;
@@ -86,7 +87,7 @@ uint16_t complementary(uint16_t* a_code, uint16_t ia_code,
 }
 
 
-void find_candidates(uint16_t code, uint16_t *candidates,
+void populate_candidates(uint16_t code, uint16_t *candidates,
 					 uint16_t* next_candidates, uint16_t icand,
 					 uint16_t *inext_cand, uint16_t *b_candidates,
 					 uint16_t* next_b_candidates, uint16_t ib_cand,
@@ -97,12 +98,12 @@ void find_candidates(uint16_t code, uint16_t *candidates,
 	for (i = 0; i < icand; i++) {
 		nc = *(candidates + i);
 		if (HD[code][nc] >= min_hd)
-			next_candidates[*inext_cand++] = nc;
+			next_candidates[(*inext_cand)++] = nc;
 	}
 	for (i = 0; i < ib_cand; i++) {
 		bc = *(b_candidates + i);
 		if (HD[code][bc] >= min_iso)
-			next_b_candidates[*inext_b_cand++] = bc;
+			next_b_candidates[(*inext_b_cand)++] = bc;
 	}
 }
 
@@ -127,7 +128,7 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 		inext_cand = 0;
 		inext_b_cand = 0;
 		
-		find_candidates(c, candidates, next_candidates, icand, &inext_cand,
+		populate_candidates(c, candidates, next_candidates, icand, &inext_cand,
 						b_candidates, next_b_candidates, ib_cand, &inext_b_cand,
 						min_hd, min_iso);
 
@@ -173,23 +174,22 @@ uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 	uint16_t next_candidates[MAX_CAND];
 	uint16_t next_b_candidates[MAX_CAND];
 	uint16_t icand = 1<<n;
+	uint16_t candidates[icand];
 	int i;
 	uint16_t nc, bc;
 	uint16_t inext_cand = 0;
 	uint16_t inext_b_cand = 0;
 	code[0] = start;
-	/* populate next_candidates with all codewords min_hd away from start */
-	//for (i = 0; i < icand; i++) {
-	//	if (HD[start][i] >= min_hd) {
-	//		next_candidates[inext_cand++] = i;
-	//		if (HD[start][i] >= min_iso)
-	//			next_b_candidates[inext_b_cand++] = i;
-	//	}
-	//}
-	find_candidates(start, next_candidates, icand, &inext_cand,
-					next_b_candidates, icand, &inext_b_cand,
-					min_hd, min_iso);
-
+	
+	// This seems silly, but it helps to reuse the code
+	for (i = 0; i < icand; i++)
+		candidates[i] = i;
+	
+	populate_candidates(start,
+						candidates, next_candidates, icand, &inext_cand,
+						candidates, next_b_candidates, icand, &inext_b_cand,
+						min_hd, min_iso);
+	
 	return find_iso(&code[0], 1, &next_candidates[0], inext_cand,
 			&next_b_candidates[0], inext_b_cand, min_hd,
 			min_iso, a_len, min_b_len, n, a_len + min_b_len);
