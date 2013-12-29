@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "TRACE.h"
+//#include "TRACE.h"
 
 #define MAX_N    8
 #define MAX_CAND (1 << MAX_N)
@@ -79,7 +79,7 @@ uint16_t find_comp(uint16_t* a_code, uint16_t ia_code, uint16_t* b_code,
 /* find codes that are complementary to a given code */
 uint16_t complementary(uint16_t* a_code, uint16_t ia_code,
 		uint16_t* b_candidates, uint16_t ib_cand, uint8_t min_hd,
-		uint8_t min_iso, uint16_t min_b_len, uint8_t n, uint16_t min_len)
+		uint16_t min_b_len, uint8_t n, uint16_t min_len)
 {
 	uint16_t b_code[MAX_CAND];
 	return find_comp(a_code, ia_code, &b_code[0], 0, &b_candidates[0],
@@ -135,7 +135,7 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 		if (((inext_cand + icode) >= a_len) && (inext_b_cand >= min_b_len)) {
 			if (icode == a_len) {
 				best_len = complementary(code, icode, &next_b_candidates[0],
-						inext_b_cand, min_hd, min_iso, min_b_len, n, min_len);
+						inext_b_cand, min_hd, min_b_len, n, min_len);
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
