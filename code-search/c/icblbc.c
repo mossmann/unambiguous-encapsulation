@@ -85,36 +85,52 @@ uint16_t complementary(uint16_t* a_code, uint16_t ia_code,
 			ib_cand, min_hd, min_b_len, min_len);
 }
 
+
+void find_candidates(uint16_t code, uint16_t *candidates,
+					 uint16_t* next_candidates, uint16_t icand,
+					 uint16_t *inext_cand, uint16_t *b_candidates,
+					 uint16_t* next_b_candidates, uint16_t ib_cand,
+					 uint16_t *inext_b_cand, uint8_t min_hd, uint8_t min_iso)
+{
+	uint16_t nc, bc;
+	int i;
+	for (i = 0; i < icand; i++) {
+		nc = *(candidates + i);
+		if (HD[code][nc] >= min_hd)
+			next_candidates[*inext_cand++] = nc;
+	}
+	for (i = 0; i < ib_cand; i++) {
+		bc = *(b_candidates + i);
+		if (HD[code][bc] >= min_iso)
+			next_b_candidates[*inext_b_cand++] = bc;
+	}
+}
+
 /* recursive search for pairs of complementary codes */
 uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 		uint16_t icand, uint16_t* b_candidates, uint16_t ib_cand,
 		uint8_t min_hd, uint8_t min_iso, uint16_t a_len,
 		uint16_t min_b_len, uint8_t n, uint16_t min_len)
 {
-	uint16_t c, nc, bc;
+	uint16_t c;
 	uint16_t next_candidates[MAX_CAND];
 	uint16_t next_b_candidates[MAX_CAND];
 	uint16_t inext_cand;
-	uint16_t inext_b_cand = 0;
+	uint16_t inext_b_cand;
 	uint16_t max_b_len, total_len;
 	uint16_t best_len;
 	uint16_t longest = 0;
-	int i;
+
 	while (icand) {
 		c = *(candidates + --icand);
 		*(code + icode++) = c;
 		inext_cand = 0;
 		inext_b_cand = 0;
-		for (i = 0; i < icand; i++) {
-			nc = *(candidates + i);
-			if (HD[c][nc] >= min_hd)
-				next_candidates[inext_cand++] = nc;
-		}
-		for (i = 0; i < ib_cand; i++) {
-			bc = *(b_candidates + i);
-			if (HD[c][bc] >= min_iso)
-				next_b_candidates[inext_b_cand++] = bc;
-		}
+		
+		find_candidates(c, candidates, next_candidates, icand, &inext_cand,
+						b_candidates, next_b_candidates, ib_cand, &inext_b_cand,
+						min_hd, min_iso);
+
 		if (((inext_cand + icode) >= a_len) && (inext_b_cand >= min_b_len)) {
 			if (icode == a_len) {
 				best_len = complementary(code, icode, &next_b_candidates[0],
@@ -163,13 +179,16 @@ uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 	uint16_t inext_b_cand = 0;
 	code[0] = start;
 	/* populate next_candidates with all codewords min_hd away from start */
-	for (i = 0; i < icand; i++) {
-		if (HD[start][i] >= min_hd) {
-			next_candidates[inext_cand++] = i;
-			if (HD[start][i] >= min_iso)
-				next_b_candidates[inext_b_cand++] = i;
-		}
-	}
+	//for (i = 0; i < icand; i++) {
+	//	if (HD[start][i] >= min_hd) {
+	//		next_candidates[inext_cand++] = i;
+	//		if (HD[start][i] >= min_iso)
+	//			next_b_candidates[inext_b_cand++] = i;
+	//	}
+	//}
+	find_candidates(start, next_candidates, icand, &inext_cand,
+					next_b_candidates, icand, &inext_b_cand,
+					min_hd, min_iso);
 
 	return find_iso(&code[0], 1, &next_candidates[0], inext_cand,
 			&next_b_candidates[0], inext_b_cand, min_hd,

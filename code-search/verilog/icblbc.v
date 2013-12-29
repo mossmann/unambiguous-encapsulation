@@ -308,11 +308,14 @@ endmodule
 
 
 module find_iso (
-input wire [7:0] code [MAX_CAND:0],
+
+reg wren_codes, wren_next_cand, wren_next_b_cand;
+wire [7:0] read_codes, read_next_cand, read_next_b_cand;
+reg [7:0] addr_codes, addr_next_cand, addr_next_b_cand;
+reg [7:0] data_codes, data_next_cand, data_next_b_cand;
+
 input wire [7:0] icode,
-input wire [7:0] candidates [MAX_CAND:0],
 input wire [7:0] icand,
-input wire [7:0] b_candidates [MAX_CAND:0],
 input wire [7:0] ib_cand,
 input wire [7:0] min_hd,
 input wire [7:0] min_iso,
@@ -321,13 +324,36 @@ input wire [7:0] min_b_len,
 input wire [7:0] n,
 input wire [7:0] min_len,
 input wire start_process,
-output wire complete
+output reg complete
 );
 
 parameter MAX_N = 8;
 parameter MAX_CAND = 2**MAX_N;
 
+always @(posedge clock) begin
+	{start_process_2, start_process_1} <= {start_process_1, start_process};
+
+	case(state)
+	ST_RST: begin
+		state <= ST_IDLE;
+	end
+	
+	ST_IDLE: begin
+			if( start_process_2 ) begin
+				count <= 0;
+				icand <= 2**n;
+				state <= 3;
+				addr_next_cand <= 0;
+				addr_next_b_cand <= 0;
+				ham_in_a <= start;
+			end
+			
+	end
+	endcase
+end
 endmodule
+
+
 
 
 module find_iso_from_start (
@@ -339,7 +365,7 @@ input wire [7:0] min_iso,
 input wire [7:0] a_len,
 input wire [7:0] min_b_len,
 input wire start_process,
-output wire complete
+output reg complete
 );
 
 parameter MAX_N = 8;
@@ -458,23 +484,28 @@ always @(posedge clock) begin
 		wren_next_b_cand <= 0;
 		count <= count + 1;
 		
-		if ( count >= icand )
+		if ( count >= icand ) begin
 			state <= 7;
-		else
+			find_iso_en <= 1;
+		end else begin
 			state <= 3;
+		end
 	end
 	
 	7: begin
-		// Trigger find_iso() module and wait for it to complete
-		find_iso_en <= 1;
-		state <= 8;
+		// Wait for find_iso() to complete
+		if ( find_iso_done ) begin
+			state <= 8;
+		end
 	end
 	
 	8: begin
-		state <= ST_IDLE;
+		// Tidy up output (as needed) and return it to the parent
+		state <= 9;
 	end
 	
 	9: begin
+		complete <= 1;
 		state <= ST_IDLE;
 	end
 	
