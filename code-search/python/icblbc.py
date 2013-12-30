@@ -92,9 +92,6 @@ def find_iso(code, candidates, b_candidates, a_len, min_b_len, min_len):
 					cand_list.append((code[0:-1], candidates, b_candidates))
 					cand_list.append((code, next_candidates,next_b_candidates))
 					break
-					#best_len = find_iso(a_len, min_b_len, min_len)
-					#if best_len >= min_len:
-					#	min_len = longest = best_len
 			code.pop()
 
 	return longest
