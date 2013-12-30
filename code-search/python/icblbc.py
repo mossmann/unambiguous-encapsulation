@@ -66,70 +66,58 @@ def find_comp(a_code, candidates, min_b_len, min_len):
 
 	return longest
 
-
 # recursive search for pairs of complementary codes 
 def find_iso(code, candidates, b_candidates, a_len, min_b_len, min_len):
 	longest = 0
+	cand_list = [(code, candidates, b_candidates)]
 	
-	#cand_list = [(code, candidates, b_candidates)]
-	#
-	#while cand_list:
-	#	(code, candidates, b_candidates) = cand_list[-1]
-
-	while candidates:
-		c = candidates.pop()
-		code.append(c)
-		next_candidates = populate_candidates(c, candidates, min_hd)
-		next_b_candidates = populate_candidates(c, b_candidates, min_iso)
-	
-		if ((len(next_candidates) + len(code)) >= a_len) \
-			and (len(next_b_candidates) >= min_b_len):
-			if len(code) == a_len:
-				best_len = find_comp(code, next_b_candidates,
-									min_b_len, min_len)
-				if best_len >= min_len:
-					min_len = longest = best_len
-	
-			if len(next_candidates) and (len(code) < a_len):
-				#cand_list.append((code, next_candidates, next_b_candidates))
-				#break
-				best_len = find_iso(code, next_candidates, next_b_candidates,
-									a_len, min_b_len, min_len)
-				if best_len >= min_len:
-					min_len = longest = best_len
-		code.pop()
+	while cand_list:
+		(code, candidates, b_candidates) = cand_list.pop()
+		
+		while candidates:
+			c = candidates.pop()
+			code.append(c)
+			next_candidates = populate_candidates(c, candidates, min_hd)
+			next_b_candidates = populate_candidates(c, b_candidates, min_iso)
+		
+			if (len(next_candidates) + len(code)) >= a_len \
+				and len(next_b_candidates) >= min_b_len:
+				if len(code) == a_len:
+					best_len = find_comp(code, next_b_candidates,
+										min_b_len, min_len)
+					if best_len >= min_len:
+						min_len = longest = best_len
+		
+				if len(next_candidates) and (len(code) < a_len):
+					cand_list.append((code[0:-1], candidates, b_candidates))
+					cand_list.append((code, next_candidates,next_b_candidates))
+					break
+					#best_len = find_iso(a_len, min_b_len, min_len)
+					#if best_len >= min_len:
+					#	min_len = longest = best_len
+			code.pop()
 
 	return longest
 
-
-def find_iso_from_start(start, a_len, min_b_len):
-	code = [start]
-	candidates = range(1<<n)
-	next_candidates = populate_candidates(start, candidates, min_hd)
-	next_b_candidates = populate_candidates(start, candidates, min_iso)
-
-	return find_iso(code, next_candidates,next_b_candidates,
-					a_len, min_b_len, a_len + min_b_len)
 
 def find_best_iso():
 	min_b_len = 2
 	a_len = 1<<(n-1)
 
-	while (a_len >= min_b_len):
+	while a_len >= min_b_len:
 		print "trying a: %d, min b: %d, total: %d" % (a_len, min_b_len,
-														a_len + min_b_len)
+													  a_len + min_b_len)
 		start = 0
 		code = [start]
 		candidates = range(1<<n)
 		next_candidates = populate_candidates(start, candidates, min_hd)
 		next_b_candidates = populate_candidates(start, candidates, min_iso)
-		
-		longest = find_iso(code, next_candidates,next_b_candidates,
-						   a_len, min_b_len, a_len + min_b_len)
+		longest = find_iso(code, next_candidates,next_b_candidates, a_len, min_b_len, a_len + min_b_len)
 
-		if (longest >= (a_len + min_b_len)):
+		if longest >= (a_len + min_b_len):
 			min_b_len = longest - a_len + 1
 		a_len -= 1
+
 
 if __name__ == '__main__':
 	precompute_hd()
