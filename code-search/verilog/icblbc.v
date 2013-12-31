@@ -296,12 +296,15 @@ endmodule
 module populate_candidates (
 input wire clock,
 input wire [7:0] code,
+input wire [7:0] base_candidate_addr,
 output reg [7:0] addr_candidates,
 input wire [7:0] read_candidates,
 input wire [7:0] candidate_len,
+input wire [7:0] base_next_cand_addr,
 output reg [7:0] addr_next_cand,
 output reg [7:0] data_next_cand,
 output reg [7:0] wren_next_cand,
+output reg [7:0] next_cand_len,
 input wire [3:0] min_dist,
 input wire start,
 output reg complete
@@ -317,7 +320,7 @@ hamming_distance hd (
 	.distance ( distance )
 );
 
-reg count = 0;
+reg [7:0] icand, inext;
 reg start_1, start_2;
 reg			[5:0]	state;
 parameter	[5:0]	ST_RST		= 6'h00,
@@ -334,6 +337,8 @@ always @(posedge clock) begin
 	ST_IDLE: begin
 			if( start_2 ) begin
 				ham_in_a <= code;
+				icand <= 0;
+				inext <= 0;
 				state <= 3;
 			end
 			
@@ -341,7 +346,7 @@ always @(posedge clock) begin
 	
 	// Read next candidate
 	3: begin
-		addr_candidates <= count;
+		addr_candidates <= base_candidate_addr + icand;
 		state <= 4;
 	end
 	
@@ -354,18 +359,24 @@ always @(posedge clock) begin
 	5: begin
 		if ( distance >= min_dist ) begin
 			data_next_cand <= read_candidates;
-			addr_next_cand <= count;
+			addr_next_cand <= base_next_cand_addr + inext;
 			wren_next_cand <= 1;
 		end
 		state <= 6;
 	end
 	
 	6: begin
+		// Unsure if I need to wait until here to increment inext
+		if ( distance >= min_dist ) begin
+			inext <= inext + 1;
+		end
+
 		wren_next_cand <= 0;
-		count <= count + 1;
+		icand <= icand + 1;
 		
-		if ( count >= candidate_len ) begin
+		if ( icand > candidate_len ) begin
 			complete <= 1;
+			next_cand_len <= inext;
 			state <= 7;
 		end else begin
 			state <= 3;
