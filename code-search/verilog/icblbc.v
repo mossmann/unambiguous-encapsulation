@@ -293,45 +293,38 @@ end
 endmodule
 
 
-//module find_comp (
-//input wire clock
-//);
-//
-//hamming_distance hd (
-//	.clock ( clock),
-//	.val_a ( ham_in_a ),
-//	.val_b ( ham_in_b ),
-//	.distance (dist)
-//);
-//
-//endmodule
-
-
-module find_iso (
-
-reg wren_codes, wren_next_cand, wren_next_b_cand;
-wire [7:0] read_codes, read_next_cand, read_next_b_cand;
-reg [7:0] addr_codes, addr_next_cand, addr_next_b_cand;
-reg [7:0] data_codes, data_next_cand, data_next_b_cand;
-
-input wire [7:0] icode,
-input wire [7:0] icand,
-input wire [7:0] ib_cand,
-input wire [7:0] min_hd,
-input wire [7:0] min_iso,
-input wire [7:0] a_len,
-input wire [7:0] min_b_len,
-input wire [7:0] n,
-input wire [7:0] min_len,
-input wire start_process,
+module populate_candidates (
+input wire clock,
+input wire [7:0] code,
+output reg [7:0] addr_candidates,
+input wire [7:0] read_candidates,
+input wire [7:0] candidate_len,
+output reg [7:0] addr_next_cand,
+output reg [7:0] data_next_cand,
+output reg [7:0] wren_next_cand,
+input wire [3:0] min_dist,
+input wire start,
 output reg complete
 );
 
-parameter MAX_N = 8;
-parameter MAX_CAND = 2**MAX_N;
+wire [3:0] distance;
+reg [7:0] ham_in_a, ham_in_b;
+
+hamming_distance hd (
+	.clock ( clock),
+	.val_a ( ham_in_a ),
+	.val_b ( ham_in_b ),
+	.distance ( distance )
+);
+
+reg count = 0;
+reg start_1, start_2;
+reg			[5:0]	state;
+parameter	[5:0]	ST_RST		= 6'h00,
+					ST_IDLE		= 6'h01;
 
 always @(posedge clock) begin
-	{start_process_2, start_process_1} <= {start_process_1, start_process};
+	{start_2, start_1} <= {start_1, start};
 
 	case(state)
 	ST_RST: begin
@@ -339,20 +332,69 @@ always @(posedge clock) begin
 	end
 	
 	ST_IDLE: begin
-			if( start_process_2 ) begin
-				count <= 0;
-				icand <= 2**n;
+			if( start_2 ) begin
+				ham_in_a <= code;
 				state <= 3;
-				addr_next_cand <= 0;
-				addr_next_b_cand <= 0;
-				ham_in_a <= start;
 			end
 			
+	end
+	
+	// Read next candidate
+	3: begin
+		addr_candidates <= count;
+		state <= 4;
+	end
+	
+	// 
+	4: begin
+		ham_in_b <= read_candidates;
+		state <= 5;
+	end
+	
+	5: begin
+		if ( distance >= min_dist ) begin
+			data_next_cand <= read_candidates;
+			addr_next_cand <= count;
+			wren_next_cand <= 1;
+		end
+		state <= 6;
+	end
+	
+	6: begin
+		wren_next_cand <= 0;
+		count <= count + 1;
+		
+		if ( count >= candidate_len ) begin
+			complete <= 1;
+			state <= 7;
+		end else begin
+			state <= 3;
+		end
+	end
+	
+	7: begin
+		complete <= 0;
+		state <= ST_IDLE;
 	end
 	endcase
 end
 endmodule
 
+
+module find_comp (
+input clock
+);
+
+
+endmodule
+
+
+module find_iso (
+input clock
+);
+
+
+endmodule
 
 
 
@@ -375,22 +417,12 @@ reg			[5:0]	state;
 parameter	[5:0]	ST_RST		= 6'h00,
 					ST_IDLE		= 6'h01;
 
-//reg [7:0] code [MAX_CAND:0];
-//reg [7:0] next_candidates [MAX_CAND:0];
-//reg [7:0] next_b_candidates [MAX_CAND:0];
 
 wire [3:0] distance;
 reg [7:0] ham_in_a, ham_in_b;
 reg [7:0] count, icand;
 
 reg start_process_1, start_process_2;
-
-hamming_distance hd (
-	.clock ( clock ),
-	.val_a ( ham_in_a ),
-	.val_b ( ham_in_b ),
-	.distance ( distance )
-);
 
 // Storage for sets of codes
 reg wren_codes, wren_next_cand, wren_next_b_cand;
@@ -429,9 +461,9 @@ reg find_iso_en;
 wire find_iso_done;
 
 find_iso fi (
-
-	.start_process ( find_iso_en ),
-	.complete ( find_iso_done )
+	.clock ( clock )
+//	.start_process ( find_iso_en ),
+//	.complete ( find_iso_done )
 	
 );
 
