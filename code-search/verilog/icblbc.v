@@ -303,11 +303,11 @@ input wire [7:0] candidate_len,
 input wire [7:0] base_next_cand_addr,
 output reg [7:0] addr_next_cand,
 output reg [7:0] data_next_cand,
-output reg [7:0] wren_next_cand,
+output wire wren_next_cand,
 output reg [7:0] next_cand_len,
 input wire [3:0] min_dist,
 input wire start,
-output reg complete
+output wire complete
 );
 
 wire [3:0] distance;
@@ -320,17 +320,23 @@ hamming_distance hd (
 	.distance ( distance )
 );
 
+reg done;
+assign complete = (done == 1 || state == ST_DONE);
+reg write_cand;
+assign wren_next_cand = write_cand;
 reg [7:0] icand, inext;
 reg start_1, start_2;
 reg			[5:0]	state;
 parameter	[5:0]	ST_RST		= 6'h00,
-					ST_IDLE		= 6'h01;
+					ST_IDLE		= 6'h01,
+					ST_DONE		= 6'h07;
 
 always @(posedge clock) begin
 	{start_2, start_1} <= {start_1, start};
 
 	case(state)
 	ST_RST: begin
+		done <= 0;
 		state <= ST_IDLE;
 	end
 	
@@ -360,7 +366,7 @@ always @(posedge clock) begin
 		if ( distance >= min_dist ) begin
 			data_next_cand <= read_candidates;
 			addr_next_cand <= base_next_cand_addr + inext;
-			wren_next_cand <= 1;
+			write_cand <= 1;
 		end
 		state <= 6;
 	end
@@ -371,11 +377,11 @@ always @(posedge clock) begin
 			inext <= inext + 1;
 		end
 
-		wren_next_cand <= 0;
+		write_cand <= 0;
 		icand <= icand + 1;
 		
 		if ( icand > candidate_len ) begin
-			complete <= 1;
+			done <= 1;
 			next_cand_len <= inext;
 			state <= 7;
 		end else begin
@@ -383,8 +389,8 @@ always @(posedge clock) begin
 		end
 	end
 	
-	7: begin
-		complete <= 0;
+	ST_DONE: begin
+		done <= 0;
 		state <= ST_IDLE;
 	end
 	endcase
@@ -401,10 +407,37 @@ endmodule
 
 
 module find_iso (
-input clock
+input clock,
+input wire start,
+output wire complete
 );
 
+reg start_1, start_2;
+reg			[5:0]	state;
+parameter	[5:0]	ST_RST		= 6'h00,
+					ST_IDLE		= 6'h01;
 
+always @(posedge clock) begin
+	{start_2, start_1} <= {start_1, start};
+
+	case(state)
+	ST_RST: begin
+		state <= ST_IDLE;
+	end
+	
+	ST_IDLE: begin
+			if( start_2 ) begin
+				state <= 3;
+			end
+			
+	end
+	
+	// Read next candidate
+	3: begin
+		state <= ST_IDLE;
+	end
+	endcase
+end
 endmodule
 
 
