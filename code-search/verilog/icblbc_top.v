@@ -200,8 +200,6 @@ io_seg7 is0 (
 
 wire [3:0] dist;
 reg [7:0] ham_in_a, ham_in_b;
-//wire [7:0] ham_in_w;
-//assign ham_in_w = ham_in;
 
 hamming_distance hd (
 	.clock ( clk_50 ),
@@ -210,7 +208,7 @@ hamming_distance hd (
 	.distance (dist)
 );
 
-find_iso_from_start fifs (
+find_best_iso fbi (
 		.clock ( clk_50 )
 );
 

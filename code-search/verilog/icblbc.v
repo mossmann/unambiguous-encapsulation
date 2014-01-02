@@ -432,7 +432,6 @@ always @(posedge clock) begin
 			
 	end
 	
-	// Read next candidate
 	3: begin
 		state <= ST_IDLE;
 	end
@@ -442,7 +441,7 @@ endmodule
 
 
 
-module find_iso_from_start (
+module find_best_iso (
 input wire clock,
 input wire [7:0] start,
 input wire [7:0] n,
@@ -461,18 +460,15 @@ reg			[5:0]	state;
 parameter	[5:0]	ST_RST		= 6'h00,
 					ST_IDLE		= 6'h01;
 
-
-wire [3:0] distance;
-reg [7:0] ham_in_a, ham_in_b;
 reg [7:0] count, icand;
 
 reg start_process_1, start_process_2;
 
 // Storage for sets of codes
-reg wren_codes, wren_next_cand, wren_next_b_cand;
-wire [7:0] read_codes, read_next_cand, read_next_b_cand;
-reg [7:0] addr_codes, addr_next_cand, addr_next_b_cand;
-reg [7:0] data_codes, data_next_cand, data_next_b_cand;
+wire wren_codes;
+wire [7:0] read_codes;
+wire [7:0] addr_codes;
+wire [7:0] data_codes;
 
 icblbc_ram codes (
 	.address ( addr_codes ),
@@ -480,34 +476,15 @@ icblbc_ram codes (
 	.data ( data_codes ),
 	.wren ( wren_codes ),
 	.q ( read_codes )
-
-);
-
-icblbc_ram next_candidates (
-	.address ( addr_next_cand ),
-	.clock ( clock ),
-	.data ( data_next_cand ),
-	.wren ( wren_next_cand ),
-	.q ( read_next_cand )
-
-);
-
-icblbc_ram next_b_candidates (
-	.address ( addr_next_b_cand ),
-	.clock ( clock ),
-	.data ( data_next_b_cand ),
-	.wren ( wren_next_b_cand ),
-	.q ( read_next_b_cand )
-
 );
 
 reg find_iso_en;
 wire find_iso_done;
 
 find_iso fi (
-	.clock ( clock )
-//	.start_process ( find_iso_en ),
-//	.complete ( find_iso_done )
+	.clock ( clock ),
+	.start ( find_iso_en ),
+	.complete ( find_iso_done )
 	
 );
 
@@ -521,67 +498,16 @@ always @(posedge clock) begin
 	
 	ST_IDLE: begin
 			if( start_process_2 ) begin
-				count <= 0;
-				icand <= 2**n;
 				state <= 3;
-				addr_next_cand <= 0;
-				addr_next_b_cand <= 0;
-				ham_in_a <= start;
 			end
 			
 	end
 	
 	3: begin
-		ham_in_b <= count;
 		state <= 4;
 	end
 	
 	4: begin
-		// Delay for hamming distance to finish
-		state <= 5;
-	end
-	
-	5: begin
-		if ( distance >= min_hd ) begin
-			data_next_cand <= count;
-			addr_next_cand <= addr_next_b_cand + 1;
-			wren_next_cand <= 1;
-		end
-		if ( distance >= min_iso ) begin
-			data_next_b_cand <= count;
-			addr_next_b_cand <= addr_next_b_cand + 1;
-			wren_next_b_cand <= 1;
-		end
-		state <= 6;
-	end
-	
-	6: begin
-		wren_next_cand <= 0;
-		wren_next_b_cand <= 0;
-		count <= count + 1;
-		
-		if ( count >= icand ) begin
-			state <= 7;
-			find_iso_en <= 1;
-		end else begin
-			state <= 3;
-		end
-	end
-	
-	7: begin
-		// Wait for find_iso() to complete
-		if ( find_iso_done ) begin
-			state <= 8;
-		end
-	end
-	
-	8: begin
-		// Tidy up output (as needed) and return it to the parent
-		state <= 9;
-	end
-	
-	9: begin
-		complete <= 1;
 		state <= ST_IDLE;
 	end
 	

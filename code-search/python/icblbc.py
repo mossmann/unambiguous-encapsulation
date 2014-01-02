@@ -21,9 +21,9 @@ min_iso = 0
 '''
 Algorithm
   find list of candidates for codes and iso codes assuming start from 0
-  for each candidate in the candidate set, check hamming dist to remaining candidates
-  eventually producing a list of candidates known to obey min_hd and longer than min_len
-  find complementary set
+  for each candidate in the candidate set, check hamming dist to remaining
+  candidates eventually producing a list of candidates known to obey min_hd and
+  longer than min_len find complementary set
   
   backtrack to find other possible pairs of candidate sets
 '''
