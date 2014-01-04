@@ -443,16 +443,13 @@ endmodule
 
 module find_best_iso (
 input wire clock,
-input wire [7:0] start,
-input wire [7:0] n,
 input wire [7:0] min_hd,
 input wire [7:0] min_iso,
-input wire [7:0] a_len,
-input wire [7:0] min_b_len,
 input wire start_process,
 output reg complete
 );
 
+parameter n = 5;
 parameter MAX_N = 8;
 parameter MAX_CAND = 2**MAX_N;
 
@@ -461,6 +458,9 @@ parameter	[5:0]	ST_RST		= 6'h00,
 					ST_IDLE		= 6'h01;
 
 reg [7:0] count, icand;
+
+reg [7:0] a_len, min_b_len;
+
 
 reg start_process_1, start_process_2;
 
@@ -499,6 +499,8 @@ always @(posedge clock) begin
 	ST_IDLE: begin
 			if( start_process_2 ) begin
 				state <= 3;
+				a_len <= 1<<(n-1);
+				min_b_len <= 2;
 			end
 			
 	end
@@ -510,7 +512,6 @@ always @(posedge clock) begin
 	4: begin
 		state <= ST_IDLE;
 	end
-	
 	
 	endcase
 end
