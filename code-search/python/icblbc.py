@@ -39,81 +39,70 @@ def populate_candidates(code, candidates, min_dist):
 
 
 # recursive search for codes complementary to a given code
-def find_comp(a_code, candidates, min_b_len, min_len):
-	longest = 0
-	cand_list = [(a_code, [], candidates)]
-	
-	while cand_list:
-		(a_code, b_code, candidates) = cand_list.pop()
+def find_comp(a_code, b_code, candidates, b_depth):
+	b_depth -= 1
+	results = []
+	for i, c in  enumerate(candidates, 1):
+		b_code.append(c)
 		
-		while candidates:
-			c = candidates.pop()
-			b_code.append(c)
-			next_candidates = populate_candidates(c, candidates, min_hd)
-	
-			# only look for b_code at least as long as the longest we have found
-			if (len(next_candidates) + len(b_code)) >= min_b_len:
-				if (len(next_candidates) + len(b_code) + len(a_code)) >= min_len:
-					if len(next_candidates):
-						cand_list.append((a_code, b_code, next_candidates))
-						break
-					else:
-						print "%d %d %d %s %s" % (len(a_code) + len(b_code), len(a_code), len(b_code), a_code, b_code)
-						if (len(a_code) + len(b_code)) >= min_len:
-							min_len = longest = len(a_code) + len(b_code)
-	
-			b_code.pop()
+		if b_depth == 0:
+			results.append((a_code[:], b_code[:]))
+		else:
+			next_candidates = populate_candidates(c, candidates[i:-1], min_hd)
+		
+			if len(next_candidates) >= b_depth:
+				res = find_comp(a_code, b_code, next_candidates, b_depth)
+				if res:
+					results.extend(res)
+		
+		b_code.pop()
+	return results
 
-	return longest
 
 # recursive search for pairs of complementary codes 
-def find_iso(code, candidates, b_candidates, a_len, min_b_len, min_len):
-	longest = 0
-	cand_list = [(code, candidates, b_candidates)]
-	
-	while cand_list:
-		(code, candidates, b_candidates) = cand_list.pop()
-		
-		while candidates:
-			c = candidates.pop()
-			code.append(c)
-			next_candidates = populate_candidates(c, candidates, min_hd)
-			next_b_candidates = populate_candidates(c, b_candidates, min_iso)
-		
-			if (len(next_candidates) + len(code)) >= a_len \
-				and len(next_b_candidates) >= min_b_len:
-				if len(code) == a_len:
-					best_len = find_comp(code, next_b_candidates,
-										min_b_len, min_len)
-					if best_len >= min_len:
-						min_len = longest = best_len
-		
-				if len(next_candidates) and (len(code) < a_len):
-					cand_list.append((code[0:-1], candidates, b_candidates))
-					cand_list.append((code, next_candidates,next_b_candidates))
-					break
-			code.pop()
+def find_iso(code, candidates, b_candidates, a_depth, b_depth):
+	a_depth -= 1
+	results = []
+	for i, c in enumerate(candidates, 1):
+		code.append(c)
+		next_b_candidates = populate_candidates(c, b_candidates, min_iso)
 
-	return longest
+		if a_depth == 0:
+			b_code = []
+			res = find_comp(code, b_code, next_b_candidates, b_depth)
+			if res:
+				results.extend(res)
+		else:
+			next_candidates = populate_candidates(c, candidates[i:-1], min_hd)
+			
+			if next_candidates >= a_depth and len(next_b_candidates) >= b_depth:
+				res = find_iso(code, next_candidates,next_b_candidates, a_depth, b_depth)
+				if res:
+					results.extend(res)
+		
+		code.pop()
+	return results
 
 
 def find_best_iso():
-	min_b_len = 2
-	a_len = 1<<(n-1)
+	a_depth = 1<<(n-1)
+	b_depth = 2
+	start = 0
+	candidates = range(1<<n)
+	print candidates
 
-	while a_len >= min_b_len:
-		print "trying a: %d, min b: %d, total: %d" % (a_len, min_b_len,
-													  a_len + min_b_len)
-		start = 0
+	while a_depth > b_depth and a_depth + b_depth > n:
+		print "trying a: %d, b: %d" % (a_depth, b_depth)
 		code = [start]
-		candidates = range(1<<n)
 		next_candidates = populate_candidates(start, candidates, min_hd)
 		next_b_candidates = populate_candidates(start, candidates, min_iso)
-		longest = find_iso(code, next_candidates,next_b_candidates, a_len, min_b_len, a_len + min_b_len)
-
-		if longest >= (a_len + min_b_len):
-			min_b_len = longest - a_len + 1
-		a_len -= 1
+		res = find_iso(code, next_candidates,next_b_candidates, a_depth-1, b_depth)
+		for (i, j) in res:
+			print i, j
+		if res and a_depth > b_depth:
+			b_depth += 1
+		else:
+			a_depth -= 1
 
 
 if __name__ == '__main__':
