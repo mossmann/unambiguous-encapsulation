@@ -38,27 +38,6 @@ def populate_candidates(code, candidates, min_dist):
 	return next_candidates
 
 
-# recursive search for codes complementary to a given code
-def find_comp(a_code, b_code, candidates, b_depth):
-	b_depth -= 1
-	results = []
-	for i, c in  enumerate(candidates, 1):
-		b_code.append(c)
-		
-		if b_depth == 0:
-			results.append((a_code[:], b_code[:]))
-		else:
-			next_candidates = populate_candidates(c, candidates[i:-1], min_hd)
-		
-			if len(next_candidates) >= b_depth:
-				res = find_comp(a_code, b_code, next_candidates, b_depth)
-				if res:
-					results.extend(res)
-		
-		b_code.pop()
-	return results
-
-
 # recursive search for pairs of complementary codes 
 def find_iso(code, candidates, b_candidates, a_depth, b_depth):
 	a_depth -= 1
@@ -67,11 +46,13 @@ def find_iso(code, candidates, b_candidates, a_depth, b_depth):
 		code.append(c)
 		next_b_candidates = populate_candidates(c, b_candidates, min_iso)
 
-		if a_depth == 0:
+		if b_depth and a_depth == 0:
 			b_code = []
-			res = find_comp(code, b_code, next_b_candidates, b_depth)
+			res = find_iso(b_code, next_b_candidates, [], b_depth, 0)
 			if res:
-				results.extend(res)
+				results.append((code[:], res))
+		if a_depth == b_depth == 0:
+			results.extend(code[:])
 		else:
 			next_candidates = populate_candidates(c, candidates[i:-1], min_hd)
 			
@@ -93,10 +74,12 @@ def find_best_iso():
 
 	while a_depth > b_depth and a_depth + b_depth > n:
 		print "trying a: %d, b: %d" % (a_depth, b_depth)
-		code = [start]
+		a_code = [start]
+		a_depth -= 1
 		next_candidates = populate_candidates(start, candidates, min_hd)
 		next_b_candidates = populate_candidates(start, candidates, min_iso)
-		res = find_iso(code, next_candidates,next_b_candidates, a_depth-1, b_depth)
+		res = find_iso(a_code, next_candidates, next_b_candidates,
+					   a_depth, b_depth)
 		for (i, j) in res:
 			print i, j
 		if res and a_depth > b_depth:
