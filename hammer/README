@@ -1,0 +1,7 @@
+This is example code for the Hammer parsing library to recognize the delimited
+base64 file format specified in ../doc/delimitedbase64spec.txt.
+
+It was developed with Hammer commit 45d28c3.  Hammer is in active development,
+so there are no guarantees that this works with the current version.  For
+development, this .c file was placed in Hammer's examples directory and minor
+modifications to Hammer's makefiles were made.
