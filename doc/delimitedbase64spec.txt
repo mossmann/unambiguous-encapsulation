@@ -1,0 +1,168 @@
+Rules for delimited base64 file format:
+
+1. A file consists only of zero or more records separated by record
+delimiters.
+
+2. A record consists only of one or more fields separated by field
+delimiters.
+
+3. A field consists only of base64 encoded data, strictly following the
+recommendations of RFC 4648.
+
+4. A field contains only one base64 encoding.
+
+5. A record ending with a field delimiter contains an empty field after
+the final field delimiter.
+
+6. There are two types of records permitted in a file: header records
+and data records.
+
+7. A file contains zero or more data records.
+
+8. A data field delimiter (",") separates adjacent fields within a data
+record.
+
+9. A data record delimiter (".") separates adjacent data records.
+
+10. A file starting with a data record delimiter contains a data record
+consisting of one empty field before the initial data record delimiter.
+
+11. A file ending with a data record delimiter contains a data record
+consisting of one empty field after the final data record delimiter.
+
+12. A file contains zero or one header record.
+
+13. The header record (if present) must be the first record in a file.
+
+14. A header field delimiter (";") separates adjacent fields within a
+header record.
+
+15. A header record delimiter (":") separates the header record from
+subsequent data records.
+
+16. A file starting with a header record delimiter contains a header
+record consisting of one empty field.
+
+17. A header record must be followed by a header record delimiter.  A
+file ending with the header record delimiter contains no data records.
+
+18. All records (header and data records) in the file must consist of
+the same number of fields.
+
+
+Implementation requirements:
+
+That which is not explicitly allowed is denied.  A compliant writer of
+delimited base64 files must produce files that fully conform to this
+specification.  A compliant reader of delimited base64 files must reject
+files not fully conforming to this specification.
+
+
+Characteristics of delimited base64 files:
+
+A file consists only of bytes belonging to the set of 65 base64 encoding
+characters plus the characters ",", ".", ";", and ":".
+
+A zero byte file is a valid file consisting of zero data records
+containing an unspecified number of fields.
+
+Base64 padding characters ("=") only appear at the end of a field.
+
+The number of field delimiters in a file is r * (f - 1) where r is the
+number of records and f is the number of fields per record.
+
+The number of header record delimiters in a file is one if a header is
+present or zero if no header is present.
+
+The number of data record delimiters in a file containing one or more
+data records is r - 1 where r is the number of records in the file.
+
+A file containing zero data records (an empty file or a file containing
+only a header record) has no data record delimiters.
+
+A file containing one data record has no data record delimiters.  It
+must have at least one field delimiter or non-empty field.  Otherwise it
+would be interpreted as a file with zero data records.  A file cannot
+contain just one data record with a single empty field.
+
+
+Valid test vectors:
+
+"": The empty file contains no records.
+
+",": The file consists of one data record consisting of two fields
+containing no data.
+
+".": The file consists of two data records consisting of one field
+containing no data.
+
+":": The file consists of one header record consisting of one field
+containing no data.
+
+",,": The file consists of one data record consisting of three fields
+containing no data.
+
+";:": The file consists of one header record consisting of two fields
+containing no data.
+
+"..": The file consists of three data records consisting of one field
+containing no data.
+
+":.": The file consists of one header record consisting of one field
+containing no data and two data records consisting of one field
+containing no data.
+
+"d2VhcG9u;cHJvamVjdGlsZQ==;dGFyZ2V0:cGlzdG9s,YnVsbGV0,dG9hc3Rlcg==": The
+file consists of one header record and one data record.  Each record has
+three fields.
+
+"Vm0wd2QyUXlVWGxW": The file consists of one data record consisting of
+one field.
+
+"Ym1WemRHVmssWm1sc1pRPT0=": The file consists of one data record
+consisting of one field.  The field contains a delimited base64 file.
+
+
+Invalid test vectors:
+
+";": The header record must be followed by a header record delimiter
+(rule 17).
+
+":,": The records do not consist of the same number of fields (rule 18).
+
+".,": The records do not consist of the same number of fields (rule 18).
+
+",.": The records do not consist of the same number of fields (rule 18).
+
+"::": A file may not contain more than one header record (rule 12).
+
+".;": A data record may not precede a header record (rule 13).
+
+".:": A data record may not precede a header record (rule 13).
+
+";,": The header record must be followed by a header record delimiter
+(rule 17).
+
+";.": The header record must be followed by a header record delimiter
+(rule 17).
+
+";;": The header record must be followed by a header record delimiter
+(rule 17).
+
+":;": A file may not contain more than one header record (rule 12).
+
+"::": A file may not contain more than one header record (rule 12).
+
+";:,,": The records do not consist of the same number of fields (rule
+18).
+
+" ": A file may not contain "whitespace" characters or any other
+characters not permitted in a record (rule 1).
+
+":YWFh,YmJi": The records do not consist of the same number of fields
+(rule 18).
+
+"TEFOR1NFQw": The field is not padded in accordance with RFC 4648 (rule
+3).
+
+"MQ==Mg==": The field contains more than one base64 encoding (rule 4).
