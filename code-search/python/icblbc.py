@@ -13,10 +13,6 @@ def precompute_hd():
 		for j in range(MAX_CAND):
 			HD[i].append(HAMMING_WEIGHT[i ^ j])
 
-n = 0
-min_hd = 0
-min_iso = 0
-
 
 '''
 Algorithm
@@ -55,17 +51,17 @@ def find_iso(code, candidates, b_candidates, a_depth, b_depth):
 			results.extend(code[:])
 		else:
 			next_candidates = populate_candidates(c, candidates[i:-1], min_hd)
-			
+
 			if next_candidates >= a_depth and len(next_b_candidates) >= b_depth:
 				res = find_iso(code, next_candidates,next_b_candidates, a_depth, b_depth)
 				if res:
 					results.extend(res)
-		
+
 		code.pop()
 	return results
 
 
-def find_best_iso():
+def find_best_iso(n, min_hd, min_iso):
 	a_depth = 1<<(n-1)
 	b_depth = 2
 	start = 0
@@ -93,4 +89,4 @@ if __name__ == '__main__':
 	n = 5
 	min_hd = 2
 	min_iso = 3
-	find_best_iso()
+	find_best_iso(n, min_hd, min_iso)
