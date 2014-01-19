@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+import sys
+
+DEBUG = True
+def log(msg):
+	if DEBUG:
+		print msg
 MAX_N = 8
 MAX_CAND = (1 << MAX_N)
 
@@ -66,10 +72,12 @@ def find_best_iso(n, min_hd, min_iso):
 	b_depth = 2
 	start = 0
 	candidates = range(1<<n)
-	print candidates
+	log(repr(candidates))
+
+	valid = []
 
 	while a_depth > b_depth and a_depth + b_depth > n:
-		print "trying a: %d, b: %d" % (a_depth, b_depth)
+		log("trying a: %d, b: %d" % (a_depth, b_depth))
 		a_code = [start]
 		a_depth -= 1
 		next_candidates = populate_candidates(start, candidates, min_hd)
@@ -77,16 +85,18 @@ def find_best_iso(n, min_hd, min_iso):
 		res = find_iso(a_code, next_candidates, next_b_candidates,
 					   a_depth, b_depth)
 		for (i, j) in res:
-			print i, j
+			valid.append((i, j))
 		if res and a_depth > b_depth:
 			b_depth += 1
 		else:
 			a_depth -= 1
-
+	return valid
 
 if __name__ == '__main__':
 	precompute_hd()
 	n = 5
 	min_hd = 2
 	min_iso = 3
-	find_best_iso(n, min_hd, min_iso)
+
+	best = find_best_iso(n, min_hd, min_iso)
+	log(repr(best))
