@@ -6,6 +6,11 @@ DEBUG = True
 def log(msg):
 	if DEBUG:
 		print msg
+
+def usage():
+	sys.stderr.write("%s: <n> <min_hd> <min_iso>\n" % (sys.argv[0]))
+
+
 MAX_N = 8
 MAX_CAND = (1 << MAX_N)
 
@@ -93,10 +98,12 @@ def find_best_iso(n, min_hd, min_iso):
 	return valid
 
 if __name__ == '__main__':
+	if len(sys.argv) != 4:
+		usage()
+		sys.exit(1)
+
+	n, min_hd, min_iso = map(int, sys.argv[1:])
 	precompute_hd()
-	n = 5
-	min_hd = 2
-	min_iso = 3
 
 	best = find_best_iso(n, min_hd, min_iso)
 	log(repr(best))
