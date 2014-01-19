@@ -20,7 +20,7 @@ Algorithm
   for each candidate in the candidate set, check hamming dist to remaining
   candidates eventually producing a list of candidates known to obey min_hd and
   longer than min_len find complementary set
-  
+
   backtrack to find other possible pairs of candidate sets
 '''
 
@@ -30,11 +30,11 @@ def populate_candidates(code, candidates, min_dist):
 	for nc in candidates:
 		if (weights[nc] >= min_dist):
 			next_candidates.append(nc)
-	
+
 	return next_candidates
 
 
-# recursive search for pairs of complementary codes 
+# recursive search for pairs of complementary codes
 def find_iso(code, candidates, b_candidates, a_depth, b_depth):
 	a_depth -= 1
 	results = []
