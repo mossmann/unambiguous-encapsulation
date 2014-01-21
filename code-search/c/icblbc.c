@@ -10,7 +10,7 @@ const uint8_t HAMMING_WEIGHT[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 
 uint16_t HD[MAX_CAND][MAX_CAND];
 
-uint16_t hamming_distance(a, b)
+uint16_t hamming_distance(int a, int b)
 {
 	return HAMMING_WEIGHT[a ^ b];
 }
