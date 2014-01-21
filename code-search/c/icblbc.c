@@ -18,6 +18,7 @@ uint16_t hamming_distance(int a, int b)
 
 void usage(char *argv0) {
 	fprintf(stderr, "%s: <n> <min_hd> <min_iso>\n", argv0);
+	fprintf(stderr, "    MAX_N = %d\n", MAX_N);
 }
 
 /* fill big lookup table of hamming distances */
