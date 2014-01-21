@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 //#include "TRACE.h"
 
@@ -13,6 +14,10 @@ uint16_t HD[MAX_CAND][MAX_CAND];
 uint16_t hamming_distance(int a, int b)
 {
 	return HAMMING_WEIGHT[a ^ b];
+}
+
+void usage(char *argv0) {
+	fprintf(stderr, "%s: <n> <min_hd> <min_iso>\n", argv0);
 }
 
 /* fill big lookup table of hamming distances */
@@ -195,15 +200,29 @@ void find_best_iso(uint8_t n, uint8_t min_hd, uint8_t min_iso)
 	}
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
+	if (argc < 4) {
+		usage(argv[0]);
+		exit(1);
+	}
+
+	int n, min_hd, min_iso;
+
+	if ((n 		 = atoi(argv[1])) == 0 ||
+		(min_hd  = atoi(argv[2])) == 0 ||
+		(min_iso = atoi(argv[3])) == 0) {
+		usage(argv[0]);
+		exit(1);
+	}
+
 	precompute_hd();
 	//find_all_codes(8, 4);
 	//find_from_start(0, 6, 4);
 	//find_iso_from_start(0, 7, 2, 3, 60, 2);
 	//find_iso_from_start(0, 5, 2, 3, 4, 4);
 	//find_best_iso(6, 2, 3);
-	find_best_iso(5, 2, 3);
+	find_best_iso(n, min_hd, min_iso);
 
 	return 0;
 }
