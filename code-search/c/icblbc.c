@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 //#include "TRACE.h"
 
@@ -10,9 +11,14 @@ const uint8_t HAMMING_WEIGHT[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 
 uint16_t HD[MAX_CAND][MAX_CAND];
 
-uint16_t hamming_distance(a, b)
+uint16_t hamming_distance(int a, int b)
 {
 	return HAMMING_WEIGHT[a ^ b];
+}
+
+void usage(char *argv0) {
+	fprintf(stderr, "%s: <n> <min_hd> <min_iso>\n", argv0);
+	fprintf(stderr, "    MAX_N = %d\n", MAX_N);
 }
 
 /* fill big lookup table of hamming distances */
@@ -163,16 +169,16 @@ uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 	uint16_t inext_cand = 0;
 	uint16_t inext_b_cand = 0;
 	code[0] = start;
-	
+
 	// This seems silly, but it helps to reuse the code
 	for (i = 0; i < icand; i++)
 		candidates[i] = i;
-	
+
 	populate_candidates(start, candidates, next_candidates,
 						icand, &inext_cand, min_hd);
 	populate_candidates(start, candidates, next_b_candidates,
 						icand, &inext_b_cand, min_iso);
-	
+
 	return find_iso(&code[0], 1, &next_candidates[0], inext_cand,
 			&next_b_candidates[0], inext_b_cand, min_hd,
 			min_iso, a_len, min_b_len, n, a_len + min_b_len);
@@ -195,13 +201,29 @@ void find_best_iso(uint8_t n, uint8_t min_hd, uint8_t min_iso)
 	}
 }
 
-int main(void)
+int main(int argc, char** argv)
 {
+	if (argc < 4) {
+		usage(argv[0]);
+		exit(1);
+	}
+
+	int n, min_hd, min_iso;
+
+	if ((n 		 = atoi(argv[1])) == 0 ||
+		(min_hd  = atoi(argv[2])) == 0 ||
+		(min_iso = atoi(argv[3])) == 0) {
+		usage(argv[0]);
+		exit(1);
+	}
+
 	precompute_hd();
 	//find_all_codes(8, 4);
 	//find_from_start(0, 6, 4);
 	//find_iso_from_start(0, 7, 2, 3, 60, 2);
 	//find_iso_from_start(0, 5, 2, 3, 4, 4);
 	//find_best_iso(6, 2, 3);
-	find_best_iso(5, 2, 3);
+	find_best_iso(n, min_hd, min_iso);
+
+	return 0;
 }
