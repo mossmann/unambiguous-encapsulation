@@ -168,16 +168,16 @@ uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 	uint16_t inext_cand = 0;
 	uint16_t inext_b_cand = 0;
 	code[0] = start;
-	
+
 	// This seems silly, but it helps to reuse the code
 	for (i = 0; i < icand; i++)
 		candidates[i] = i;
-	
+
 	populate_candidates(start, candidates, next_candidates,
 						icand, &inext_cand, min_hd);
 	populate_candidates(start, candidates, next_b_candidates,
 						icand, &inext_b_cand, min_iso);
-	
+
 	return find_iso(&code[0], 1, &next_candidates[0], inext_cand,
 			&next_b_candidates[0], inext_b_cand, min_hd,
 			min_iso, a_len, min_b_len, n, a_len + min_b_len);
