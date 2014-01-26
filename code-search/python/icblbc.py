@@ -23,7 +23,8 @@ Algorithm
   find list of candidates for codes and iso codes assuming start from 0
   for each candidate in the candidate set, check hamming dist to remaining
   candidates eventually producing a list of candidates known to obey min_hd and
-  longer than min_len find complementary set
+  a_depth long. Next find complementary set with hamming distance min_iso from
+  every element in original set, this set should be b_depth long.
   
   backtrack to find other possible pairs of candidate sets
 '''
