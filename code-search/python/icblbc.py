@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 
+import sys
+
+DEBUG = True
+def log(msg):
+	if DEBUG:
+		print msg
+
+def usage():
+	sys.stderr.write("%s: <n> <min_hd> <min_iso>\n" % (sys.argv[0]))
+
+
 MAX_N = 8
 MAX_CAND = (1 << MAX_N)
 
@@ -12,10 +23,6 @@ def precompute_hd():
 		HD.append([])
 		for j in range(MAX_CAND):
 			HD[i].append(HAMMING_WEIGHT[i ^ j])
-
-n = 0
-min_hd = 0
-min_iso = 0
 
 
 '''
@@ -35,11 +42,11 @@ def populate_candidates(code, candidates, min_dist):
 	for nc in candidates:
 		if (weights[nc] >= min_dist):
 			next_candidates.append(nc)
-	
+
 	return next_candidates
 
 
-# recursive search for pairs of complementary codes 
+# recursive search for pairs of complementary codes
 def find_iso(code, candidates, b_candidates, a_depth, b_depth):
 	a_depth -= 1
 	results = []
@@ -56,25 +63,27 @@ def find_iso(code, candidates, b_candidates, a_depth, b_depth):
 			results.extend(code[:])
 		else:
 			next_candidates = populate_candidates(c, candidates[i:-1], min_hd)
-			
+
 			if next_candidates >= a_depth and len(next_b_candidates) >= b_depth:
 				res = find_iso(code, next_candidates,next_b_candidates, a_depth, b_depth)
 				if res:
 					results.extend(res)
-		
+
 		code.pop()
 	return results
 
 
-def find_best_iso():
+def find_best_iso(n, min_hd, min_iso):
 	a_depth = 1<<(n-1)
 	b_depth = 2
 	start = 0
 	candidates = range(1<<n)
-	print candidates
+	log(repr(candidates))
+
+	valid = []
 
 	while a_depth > b_depth and a_depth + b_depth > n:
-		print "trying a: %d, b: %d" % (a_depth, b_depth)
+		log("trying a: %d, b: %d" % (a_depth, b_depth))
 		a_code = [start]
 		a_depth -= 1
 		next_candidates = populate_candidates(start, candidates, min_hd)
@@ -82,16 +91,20 @@ def find_best_iso():
 		res = find_iso(a_code, next_candidates, next_b_candidates,
 					   a_depth, b_depth)
 		for (i, j) in res:
-			print i, j
+			valid.append((i, j))
 		if res and a_depth > b_depth:
 			b_depth += 1
 		else:
 			a_depth -= 1
-
+	return valid
 
 if __name__ == '__main__':
+	if len(sys.argv) != 4:
+		usage()
+		sys.exit(1)
+
+	n, min_hd, min_iso = map(int, sys.argv[1:])
 	precompute_hd()
-	n = 5
-	min_hd = 2
-	min_iso = 3
-	find_best_iso()
+
+	best = find_best_iso(n, min_hd, min_iso)
+	log(repr(best))
