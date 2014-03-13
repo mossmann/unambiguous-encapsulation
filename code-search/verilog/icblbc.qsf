@@ -365,6 +365,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name VERILOG_FILE icblbc_top.v
 set_global_assignment -name VERILOG_FILE icblbc.v
+set_global_assignment -name VERILOG_FILE icblbc_stack.v
 set_global_assignment -name SDC_FILE constraints.sdc
 set_global_assignment -name VERILOG_FILE common/io_seg7.v
 set_global_assignment -name VERILOG_FILE common/usb3/usb2_top.v

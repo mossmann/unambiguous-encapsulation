@@ -31,6 +31,7 @@ wire [7:0] bit_diff;
 assign bit_diff = val_a ^ val_b;
 
 always @(posedge clock) begin
+	// Unless I misunderstood him, Marshall said this should work
 	distance = bit_diff[0] + bit_diff[1] + bit_diff[2] + bit_diff[3]
 			 + bit_diff[4] + bit_diff[5] + bit_diff[6] + bit_diff[7];
 end
@@ -168,6 +169,18 @@ always @(posedge clock) begin
 	end
 	
 	3: begin
+		state <= 4;
+	end
+	
+	4: begin
+		state <= 5;
+	end
+	
+	5: begin
+		state <= 6;
+	end
+	
+	6: begin
 		state <= ST_IDLE;
 	end
 	endcase
@@ -202,7 +215,7 @@ reg start_process_1, start_process_2;
 // Storage for sets of codes
 wire wren_codes;
 wire [7:0] read_codes;
-wire [7:0] addr_codes;
+wire [10:0] addr_codes;
 wire [7:0] data_codes;
 
 icblbc_ram codes (
@@ -213,13 +226,12 @@ icblbc_ram codes (
 	.q ( read_codes )
 );
 
-reg find_iso_en;
-wire find_iso_done;
+reg fi_en;
 
 find_iso fi (
 	.clock ( clock ),
-	.start ( find_iso_en ),
-	.complete ( find_iso_done )
+	.start ( fi_en ),
+	.complete ( fi_done )
 	
 );
 
@@ -245,6 +257,30 @@ always @(posedge clock) begin
 	end
 	
 	4: begin
+		state <= 5;
+	end
+	
+	5: begin
+		state <= 10;
+	end
+	
+	// Wait for find_iso() to finish
+	10: begin
+		fi_en <= 1;
+		state <= 11;
+	end
+	
+	11: begin
+		if( fi_done ) begin
+			state <= 12;
+		end
+	end
+	
+	12: begin
+		state <= 13;
+	end
+	
+	20: begin
 		state <= ST_IDLE;
 	end
 	
