@@ -98,6 +98,91 @@ def find_best_iso(n, min_hd, min_iso):
 			a_depth -= 1
 	return valid
 
+def iterative_find_comp(candidates, min_hd, min_len):
+	cand_stack = [candidates]
+	code = []
+	results = []
+	while cand_stack:
+		b_candidates = cand_stack[-1]
+		if not len(b_candidates):
+			cand_stack.pop()
+			if len(code):
+				code.pop()
+			continue
+		
+		codeword = b_candidates.pop()
+		code.append(codeword)
+		
+		next_b_candidates = populate_candidates(codeword, b_candidates, min_hd)
+		if next_b_candidates and len(next_b_candidates) + len(code) >= min_len:
+			cand_stack.append(next_b_candidates)
+		else:
+			if len(code) >= min_len:
+				results.append(code[:])
+				min_len = len(code)
+			code.pop()
+	
+	return results, min_len
+	
+
+def iterative_find_iso(n, min_hd, min_iso, a_len, min_b_len):
+	# One time setup
+	code = [0]
+	search_space = range(1, 1<<n)
+	search_space.reverse()
+	candidates = populate_candidates(code[0], search_space, min_hd)
+	b_candidates = populate_candidates(code[0], candidates, min_iso)
+	cand_stack = [(candidates, b_candidates)]
+	results = []
+	
+	while cand_stack:
+		candidates, b_candidates = cand_stack[-1]
+		if not len(candidates):
+			cand_stack.pop()
+			code.pop()
+			continue
+
+		codeword = candidates.pop()
+		code.append(codeword)
+		
+		next_b_candidates = populate_candidates(codeword, b_candidates, min_iso)
+		if len(code) >= a_len:
+			if  len(next_b_candidates) >= min_b_len:
+				res, min_b_len = iterative_find_comp(next_b_candidates[:], min_hd, min_b_len)
+				if res:
+					results.append((code[:], res))
+			code.pop()
+		
+		else:
+			next_candidates = populate_candidates(codeword, candidates, min_hd)
+	
+			if len(next_candidates) + len(code) >= a_len and len(next_b_candidates) >= min_b_len:
+				cand_stack.append((next_candidates, next_b_candidates))
+			else:
+				code.pop()
+	return results
+
+def iterative_find_best_iso(n, min_hd, min_iso):
+	a_len = 1<<(n-1)
+	min_b_len = 2
+	valid = []
+
+	while a_len >= min_b_len:
+		log("trying a: %d, min b: %d, total: %d" % (a_len, min_b_len, a_len+min_b_len))
+		res = iterative_find_iso(n, min_hd, min_iso, a_len, min_b_len)
+		longest_b = 0
+		for (a_code, b_codes) in res:
+			for b_code in b_codes:
+				print a_len + len(b_code), a_len, len(b_code), a_code, b_code
+			valid.extend([(a_code, b_code) for b_code in b_codes])
+			longest_b = reduce(max, map(len, b_codes), longest_b)
+		if longest_b >= min_b_len:
+			min_b_len = longest_b + 1
+		a_len -= 1
+
+	return valid
+
+
 if __name__ == '__main__':
 	if len(sys.argv) != 4:
 		usage()
@@ -106,5 +191,6 @@ if __name__ == '__main__':
 	n, min_hd, min_iso = map(int, sys.argv[1:])
 	precompute_hd()
 
-	best = find_best_iso(n, min_hd, min_iso)
-	log(repr(best))
+	#best = find_best_iso(n, min_hd, min_iso)
+	best = iterative_find_best_iso(n, min_hd, min_iso)
+	#log(repr(best))

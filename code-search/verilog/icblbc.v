@@ -38,6 +38,7 @@ end
 endmodule
 
 
+// Populate candidates module
 module populate_candidates (
 input wire clock,
 input wire [7:0] code,
