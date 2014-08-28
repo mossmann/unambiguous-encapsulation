@@ -41,12 +41,20 @@ parameter	[6:0]	ST_RST		= 6'h00,
 
 reg [7:0] stack_size;
 
-icblbc_ram code (
+icblbc_ram codes (
 	.address ( addr_codes ),
 	.clock ( clock ),
 	.data ( data_codes ),
 	.wren ( wren_codes ),
 	.q ( read_codes )
+);
+
+icblbc_ram candidates (
+	.address ( addr_candidates ),
+	.clock ( clock ),
+	.data ( data_candidates ),
+	.wren ( wren_candidates ),
+	.q ( read_candidates )
 );
 
 icblbc_ram results (
@@ -56,6 +64,9 @@ icblbc_ram results (
 	.wren ( wren_results ),
 	.q ( read_results )
 );
+
+reg [10:0] stack_len;
+reg [10:0] results_len;
 
 reg start_1, start_2;
 
@@ -68,11 +79,12 @@ always @(posedge clock) begin
 	end
 	
 	ST_IDLE: begin
-			if( start_process_2 ) begin
+			if( start_2 ) begin
 				if ( copy_results ) begin
-				state <= 3;
-				a_len <= 1<<(n-1);
-				min_b_len <= 2;
+					state <= 3;
+					a_len <= 1<<(n-1);
+					min_b_len <= 2;
+				end
 			end
 			
 	end
