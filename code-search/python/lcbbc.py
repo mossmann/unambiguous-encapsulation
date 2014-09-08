@@ -66,8 +66,7 @@ def iterative_find_code(n):
 		else:
 			if len(code) > longest_code:
 				results.append(code[:])
-				log("%d, %f, " % (len(code), math.log(len(code), 2)))
-				log(code)
+				log("%d, %f, %s" % (len(code), math.log(len(code), 2), code))
 				longest_code = len(code)
 			code.pop()
 	return results
