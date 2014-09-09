@@ -1,5 +1,6 @@
 # C binary
 c/icblbc
+c/lcbbc
 
 # Quartus output files
 verilog/db
