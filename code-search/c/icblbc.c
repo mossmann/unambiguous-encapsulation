@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-//#include "TRACE.h"
 
 #define MAX_N    8
 #define MAX_CAND (1 << MAX_N)
