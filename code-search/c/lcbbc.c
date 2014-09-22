@@ -6,8 +6,6 @@
 #define MAX_N    8
 #define MAX_CAND (1 << MAX_N)
 
-const uint8_t HAMMING_WEIGHT[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
-
 uint8_t HD[MAX_CAND][MAX_CAND];
 
 void usage(char *argv0) {
@@ -24,7 +22,7 @@ void precompute_hd(int min_hd)
 			/* FIXME store as bits in bytes and
 			 * use popcount to remove MAX_N limitation
 			 */
-			if(HAMMING_WEIGHT[i ^ j] >= min_hd)
+			if(__builtin_popcount(i ^ j) >= min_hd)
 				HD[i][j] = 1;
 			else
 				HD[i][j] = 0;
@@ -85,7 +83,11 @@ int find_code(int bitlength) {
 	candidates.index = 1 << bitlength;
 	for (i = 1; i <= candidates.index; i++)
 		candidates.codewords[i] = candidates.index - i;
-	return find_best_code(&code, &candidates, 0);
+	
+	codeword_list next_candidates;
+	next_candidates.index = 0;
+	populate_candidates(0, &candidates, &next_candidates);
+	return find_best_code(&code, &next_candidates, 0);
 	
 }
 
