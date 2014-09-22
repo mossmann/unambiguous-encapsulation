@@ -65,9 +65,9 @@ int find_best_code(codeword_list* code, codeword_list* candidates, int longest)
 				longest = code->index;
 				printf("%d, [", longest);
 				int i;
-				for(i=0; i<longest; i++)
+				for(i=0; i<longest-1; i++)
 					printf("%d, ", code->codewords[i]);
-				printf("]\n");
+				printf("%d]\n", code->codewords[longest-1]);
 			}
 		}
 		code->index--;
@@ -80,10 +80,10 @@ int find_code(int bitlength) {
 	codeword_list code, candidates;
 	code.index = 1;
 	code.codewords[0] = 0;
-	candidates.index = 1 << bitlength;
-	for (i = 1; i <= candidates.index; i++)
+	candidates.index = (1 << bitlength) - 1;
+	for (i = 0; i <= candidates.index; i++)
 		candidates.codewords[i] = candidates.index - i;
-	
+
 	codeword_list next_candidates;
 	next_candidates.index = 0;
 	populate_candidates(0, &candidates, &next_candidates);
