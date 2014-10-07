@@ -2,18 +2,19 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-int cand_len;
-int max_cand;
-uint8_t *HD;
+#define CAND_WIDTH 32
+
+int cand_len, max_cand;
+uint32_t *HD;
 
 /* fill big lookup table of hamming distances */
 void precompute_hd(int min_hd)
 {
 	int i, j, k;
-	uint8_t *current;
+	uint32_t *current;
 	uint16_t value;
 	
-	HD = (uint8_t *) calloc(max_cand, cand_len);
+	HD = (uint32_t *) calloc(max_cand, cand_len);
 	if(HD == NULL) {
 		fprintf(stderr, "Error: unable to allocate memory for hamming distance table\n");
 		exit(1);
@@ -24,7 +25,7 @@ void precompute_hd(int min_hd)
 		for (j = 0; j < cand_len; j++) {
 			for(k=7;k>=0;k--) {
 				current[j] <<= 1;
-				value = (j*8 + k);
+				value = (j*CAND_WIDTH + k);
 				if(__builtin_popcount(i ^ value) >= min_hd)
 					current[j] |= 0x01;
 			}
@@ -39,7 +40,7 @@ typedef struct code_list_t {
 
 typedef struct codeword_list_t {
 	uint32_t size;
-	uint8_t *codewords;
+	uint32_t *codewords;
 } codeword_list;
 
 codeword_list *new_codeword_list() {
@@ -47,7 +48,7 @@ codeword_list *new_codeword_list() {
 	list = (codeword_list *) malloc(sizeof(codeword_list));
 	if(list == NULL)
 		fprintf(stderr, "Malloc failed to allocate for codeword_list!\n");
-	list->codewords = (uint8_t *) calloc(1, cand_len);
+	list->codewords = (uint32_t *) calloc(4, cand_len);
 	if(list->codewords == NULL)
 		fprintf(stderr, "Malloc failed to allocate for list->codewords!\n");
 	return list;
@@ -58,7 +59,7 @@ void populate_candidates(uint16_t code, codeword_list *candidates,
 						 codeword_list* next_candidates)
 {
 	int i;
-	uint8_t *byte = HD + code*cand_len;
+	uint32_t *byte = HD + code*cand_len;
 	next_candidates->size = 0;
 	for (i = 0; i < cand_len; i++) {
 		next_candidates->codewords[i] = candidates->codewords[i] &  byte[i];
@@ -66,18 +67,15 @@ void populate_candidates(uint16_t code, codeword_list *candidates,
 	}
 }
 
-uint16_t next_bit(uint8_t *array) {
-	uint8_t c, x;
-	for(x=0; x<cand_len; x++) {
-		if(array[x] != 0) {
-			for(c=0; c<8; c++) {
+uint16_t next_bit(uint32_t *array) {
+	uint32_t c, x;
+	for(x=0; x<cand_len; x++)
+		if(array[x] != 0)
+			for(c=0; c<CAND_WIDTH; c++)
 				if(array[x] & 1<<c) {
 					array[x] ^= 1 << c;
-					return 8*x + c;
+					return (x<<3) + c;
 				}
-			}
-		}
-	}
 	return 0;
 }
 
@@ -85,7 +83,7 @@ uint16_t next_bit(uint8_t *array) {
 int find_best_code(code_list* code, codeword_list* candidates, int longest)
 {
 	codeword_list *next_candidates;
-	uint16_t c;
+	uint16_t c, i;
 
 	next_candidates = new_codeword_list();
 	while (candidates->size) {
@@ -101,7 +99,6 @@ int find_best_code(code_list* code, codeword_list* candidates, int longest)
 			else {
 				longest = code->index;
 				printf("%d, [", longest);
-				int i;
 				for(i=0; i<longest-1; i++)
 					printf("%d, ", code->codewords[i]);
 				printf("%d]\n", code->codewords[longest-1]);
@@ -127,7 +124,7 @@ int find_code() {
 	candidates = new_codeword_list();
 	for (i = 0; i < cand_len; i++)
 		candidates->codewords[i] = 0xff;
-	candidates->codewords[cand_len-1] >>= (max_cand%8);
+	candidates->codewords[cand_len-1] >>= (max_cand%CAND_WIDTH);
 	candidates->codewords[0] ^= 0x01;
 	
 	next_candidates = new_codeword_list();
@@ -163,7 +160,8 @@ int main(int argc, char** argv)
 	}
 
 	max_cand = 1 << n;
-	cand_len = (max_cand+7) / 8;
+	cand_len = (max_cand+(CAND_WIDTH-1)) / CAND_WIDTH;
+	printf("cand_len: %d\n", cand_len);
 
 	precompute_hd(min_hd);
 	find_code();

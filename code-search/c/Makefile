@@ -1,5 +1,5 @@
 
-all: icblbc lcbbc lcbbc_flags
+all: icblbc lcbbc lcbbc_flags icnbc
 
 icblbc: icblbc.c
 	gcc -o icblbc icblbc.c
@@ -9,6 +9,9 @@ lcbbc: lcbbc.c
 
 lcbbc_flags: lcbbc_flags.c
 	gcc -mpopcnt -O3 -o lcbbc_flags lcbbc_flags.c
+
+icnbc: icnbc.c
+	gcc -mpopcnt -O3 -o icnbc icnbc.c
 
 clean:
 	rm -f icblbc lcbbc lcbbc_flags
