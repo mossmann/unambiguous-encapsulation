@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define MAX_N    8
+#define MAX_N    12
 #define MAX_CAND (1 << MAX_N)
 
 uint8_t HD[MAX_CAND][MAX_CAND];
