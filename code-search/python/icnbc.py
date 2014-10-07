@@ -17,9 +17,8 @@ def usage():
 def lee_distance(x, y):
 	if len(x) != len(y):
 		log("Uneven code lengths")
-	ld = 0
-	for a, b in zip(x, y):
-		ld += abs(a - b % ALPHABET_LEN)
+	ld = sum([min((a-b), ALPHABET_LEN-(a-b))
+			  for a, b in zip(x, y)])
 	return ld
 
 def populate_candidates(code, candidates, min_dist):
