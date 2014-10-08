@@ -71,6 +71,7 @@ def find_iso(n, min_ld, min_iso, a_len, min_b_len):
 	b_candidates = populate_candidates(code[0], search_space, min_iso)
 	cand_stack = [(candidates, b_candidates)]
 	results = []
+	second_codewords = {}
 	
 	while cand_stack:
 		candidates, b_candidates = cand_stack[-1]
@@ -81,6 +82,17 @@ def find_iso(n, min_ld, min_iso, a_len, min_b_len):
 		
 		codeword = candidates.pop()
 		code.append(codeword)
+		
+		# De-duplicate second codeword permutations
+		if len(code) == 2:
+			c = list(codeword)
+			c.sort()
+			d = tuple(c)
+			if d in second_codewords:
+				code.pop()
+				continue
+			else:
+				second_codewords[d] = 1
 		
 		next_b_candidates = populate_candidates(codeword, b_candidates, min_iso)
 		if len(code) >= a_len:
@@ -97,27 +109,39 @@ def find_iso(n, min_ld, min_iso, a_len, min_b_len):
 				cand_stack.append((next_candidates, next_b_candidates))
 			else:
 				code.pop()
+	print len(second_codewords)
 	return results
 
 def find_best_iso(n, min_hd, min_iso):
-	a_len = ALPHABET_LEN**(n-1)
+	a_len = ALPHABET_LEN**(n-2)
 	min_b_len = 2
-	valid = []
+	#valid = []
 
 	while a_len >= min_b_len:
 		log("trying a: %d, min b: %d, total: %d" % (a_len, min_b_len, a_len+min_b_len))
 		res = find_iso(n, min_hd, min_iso, a_len, min_b_len)
 		longest_b = 0
 		for (a_code, b_codes) in res:
+			#new_a_codes = []
+			#for code in a_code:
+			#	x = list(code)
+			#	x.sort()
+			#	new_a_codes.append(x)
 			for b_code in b_codes:
+				#new_b_codes = []
+				#for code in b_code:
+				#	x = list(code)
+				#	x.sort()
+				#	new_b_codes.append(x)
+				#print a_len + len(b_code), a_len, len(b_code), new_a_codes, new_b_codes
 				print a_len + len(b_code), a_len, len(b_code), a_code, b_code
-			valid.extend([(a_code, b_code) for b_code in b_codes])
+			#valid.extend([(a_code, b_code) for b_code in b_codes])
 			longest_b = reduce(max, map(len, b_codes), longest_b)
 		if longest_b >= min_b_len:
 			min_b_len = longest_b + 1
 		a_len -= 1
 
-	return valid
+	#return valid
 
 if __name__ == '__main__':
 	if len(sys.argv) != 4:
