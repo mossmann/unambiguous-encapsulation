@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import sys
+import sys, itertools
 
-MAX_N = 3
 ALPHABET_LEN = 7
-ALPHABET = range(ALPHABET_LEN)
 
 DEBUG = True
 def log(msg):
@@ -16,7 +14,7 @@ def usage():
 
 def lee_distance(x, y):
 	if len(x) != len(y):
-		log("Uneven code lengths")
+		log("Uneven code lengths: " + str(x) + " " + str(y))
 	ld = sum([min((a-b), ALPHABET_LEN-(a-b))
 			  for a, b in zip(x, y)])
 	return ld
@@ -29,11 +27,8 @@ def populate_candidates(code, candidates, min_dist):
 	return next_candidates
 
 def create_search_space(n):
-	search_space = []
-	for s1 in ALPHABET:
-		for s2 in ALPHABET:
-			for s3 in ALPHABET:
-				search_space.append((s1,s2,s3))
+	# Convert iterator to list because we want to use it twice
+	search_space = [x for x in itertools.product(range(ALPHABET_LEN), repeat=n)]
 	return search_space
 
 def find_comp(candidates, min_ld, min_len):
@@ -64,7 +59,8 @@ def find_comp(candidates, min_ld, min_len):
 
 def find_iso(n, min_ld, min_iso, a_len, min_b_len):
 	# Initial setup
-	code = [(0,0,0)]
+	codeword = tuple([0]*n)
+	code = [codeword]
 	search_space = create_search_space(n)
 	search_space.reverse()
 	candidates = populate_candidates(code[0], search_space, min_ld)
@@ -109,11 +105,11 @@ def find_iso(n, min_ld, min_iso, a_len, min_b_len):
 				cand_stack.append((next_candidates, next_b_candidates))
 			else:
 				code.pop()
-	print len(second_codewords)
+	#print len(second_codewords)
 	return results
 
 def find_best_iso(n, min_hd, min_iso):
-	a_len = ALPHABET_LEN**(n-2)
+	a_len = ALPHABET_LEN**(n-1)
 	min_b_len = 2
 	#valid = []
 
@@ -122,18 +118,7 @@ def find_best_iso(n, min_hd, min_iso):
 		res = find_iso(n, min_hd, min_iso, a_len, min_b_len)
 		longest_b = 0
 		for (a_code, b_codes) in res:
-			#new_a_codes = []
-			#for code in a_code:
-			#	x = list(code)
-			#	x.sort()
-			#	new_a_codes.append(x)
 			for b_code in b_codes:
-				#new_b_codes = []
-				#for code in b_code:
-				#	x = list(code)
-				#	x.sort()
-				#	new_b_codes.append(x)
-				#print a_len + len(b_code), a_len, len(b_code), new_a_codes, new_b_codes
 				print a_len + len(b_code), a_len, len(b_code), a_code, b_code
 			#valid.extend([(a_code, b_code) for b_code in b_codes])
 			longest_b = reduce(max, map(len, b_codes), longest_b)
