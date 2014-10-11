@@ -28,8 +28,7 @@ def populate_candidates(code, candidates, min_dist):
 
 def create_search_space(n):
 	# Convert iterator to list because we want to use it twice
-	search_space = [x for x in itertools.product(range(ALPHABET_LEN), repeat=n)]
-	return search_space
+	return list(itertools.product(range(ALPHABET_LEN), repeat=n))
 
 def find_comp(candidates, min_ld, min_len):
 	cand_stack = [candidates]
