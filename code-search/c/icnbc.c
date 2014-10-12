@@ -37,6 +37,11 @@ codeword_list *new_codeword_list(uint8_t n, int size) {
 	return cw_list;
 }
 
+void delete_codeword_list(codeword_list *list) {
+	free(list->codewords);
+	free(list);
+}
+
 static inline void copy_codeword(uint8_t *src, uint8_t *dst, int n) {
 	int i;
 	for(i=0; i<n; i++)
@@ -49,27 +54,35 @@ void populate_candidates(codeword_list* code, codeword_list *candidates,
 {
 	uint8_t *nc;
 	int i, j, k;
+	next_candidates->index = 0;
 	for (i = 0; i < candidates->index; i++) {
 		nc = candidates->codewords + n*i;
 		if (lee_distance(nc, code->codewords + code->index*n, n) >= min_dist) {
 			j = n * next_candidates->index++;
-			
-			for(k=0; k<n; k++)
-				next_candidates->codewords[j+k] = nc[k];
-			//copy_codeword(nc, next_candidates->codewords + j, n);
+			copy_codeword(nc, next_candidates->codewords + j, n);
 		}
 	}
 }
 
-void print_set(codeword_list *set, uint8_t n) {
+void print_code(codeword_list *a_code, codeword_list *b_code, uint8_t n) {
 	int i,j,k;
-	for(i=0; i<set->index; i++) {
-		printf("[");
+	printf("%d %d %d [", a_code->index + b_code->index, a_code->index, b_code->index);
+	for(i=0; i<a_code->index; i++) {
 		j = i*n;
+		printf("(");
 		for(k=j; k<j+n; k++)
-			printf("%x,", set->codewords[k]);
-		printf("]\n");
+			printf("%d,", a_code->codewords[k]);
+		printf("), ");
 	}
+	printf("] [");
+	for(i=0; i<b_code->index; i++) {
+		j = i*n;
+		printf("(");
+		for(k=j; k<j+n; k++)
+			printf("%d,", b_code->codewords[k]);
+		printf("), ");
+	}
+	printf("]\n");
 }
 
 codeword_list *create_search_space(uint8_t n) {
@@ -98,9 +111,39 @@ codeword_list *create_search_space(uint8_t n) {
 }
 
 uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
-				   codeword_list* candidates, uint8_t min_ld,
+				   codeword_list* candidates, uint8_t n, uint8_t min_ld,
 				   uint16_t min_b_len, uint16_t min_len) {
-	return 1;
+	codeword_list *next_candidates;
+	uint16_t best_len, longest = 0;
+	
+	next_candidates = new_codeword_list(n, candidates->index);
+	
+	while (candidates->index) {
+		copy_codeword(candidates->codewords + --candidates->index,
+					  b_code->codewords + b_code->index++, n);
+		
+		populate_candidates(b_code, candidates, n, next_candidates, min_ld);
+		
+		/* only look for b_code at least as long as the longest we have found */
+		if ((candidates->index + b_code->index) >= min_b_len) {
+			if ((candidates->index + b_code->index + a_code->index) >= min_len) {
+				if (candidates->index) {
+					best_len = find_comp(a_code, b_code, next_candidates, n,
+										 min_ld, min_b_len, min_len);
+					if (best_len >= min_len) {
+						longest = best_len;
+						min_len = best_len;
+					}
+				} else {
+					print_code(a_code, b_code, n);
+					if ((a_code->index + b_code->index) >= min_len)
+						longest = a_code->index + b_code->index;
+				}
+			}
+		}
+		b_code->index--;
+	}
+	return longest;
 }
 
 int find_iso(codeword_list *code, codeword_list *candidates,
@@ -119,22 +162,19 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 					  code->codewords + code->index++, n);
 		
 		populate_candidates(code, candidates, n, next_candidates, min_ld);
-		printf("next_candidates:\n");
-		print_set(next_candidates, n);
 		populate_candidates(code, b_candidates, n, next_b_candidates, min_iso);
-		printf("next_candidates:\n");
-		print_set(next_b_candidates, n);
-
+		
 		if (((next_candidates->index + code->index) >= a_len) &&
 			(next_b_candidates->index >= min_b_len)) {
 			if (code->index == a_len) {
 				codeword_list *b_code = new_codeword_list(n, next_b_candidates->index);
-				best_len =  find_comp(code, b_code,  next_b_candidates,
-									  min_ld, min_b_len, min_len);
+				best_len = find_comp(code, b_code, next_b_candidates, n, min_ld,
+									 min_b_len, min_len);
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
 				}
+				delete_codeword_list(b_code);
 			}
 			if ((next_candidates->index) && (code->index < a_len)) {
 				best_len = find_iso(code, next_candidates, next_b_candidates, n,
@@ -147,13 +187,15 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 		}
 		code->index--;
 	}
+	delete_codeword_list(next_candidates);
+	delete_codeword_list(next_b_candidates);
 	return longest;
 }
 
 int find_iso_from_start(uint8_t n, uint8_t min_ld, uint8_t min_iso,
 						uint16_t a_len, uint16_t min_b_len) {
 	codeword_list *code, *candidates, *next_candidates, *next_b_candidates;
-	int i;
+	int i, longest;
 	
 	candidates = create_search_space(n);
 	code = new_codeword_list(n, candidates->index);
@@ -166,11 +208,15 @@ int find_iso_from_start(uint8_t n, uint8_t min_ld, uint8_t min_iso,
 	populate_candidates(code, candidates, n, next_candidates, min_ld);
 	populate_candidates(code, candidates, n, next_b_candidates, min_iso);
 	
-	print_set(next_candidates, n);
-	printf("\n");
+	delete_codeword_list(candidates);
 	
-	return find_iso(code, next_candidates, next_b_candidates, n, min_ld,
+	longest = find_iso(code, next_candidates, next_b_candidates, n, min_ld,
 					min_iso, a_len, min_b_len, a_len + min_b_len);
+	
+	delete_codeword_list(next_candidates); 
+	delete_codeword_list(next_b_candidates);
+	delete_codeword_list(code);
+	return longest;
 }
 
 void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso)
@@ -178,7 +224,7 @@ void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso)
 	uint16_t a_len, min_b_len, longest, longest_b;
 	min_b_len = 2;
 
-	for (a_len = 1<<(n-1); a_len >= min_b_len; a_len--) {
+	for (a_len = pow(ALPHABET_LEN, n-1); a_len >= min_b_len; a_len--) {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(n, min_ld, min_iso, a_len, min_b_len);
