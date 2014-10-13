@@ -43,12 +43,9 @@ static inline void copy_codeword(uint8_t *src, int src_offset,
 	uint8_t *from, *to;
 	from = src + src_offset * n;
 	to = dst + dst_offset * n;
-	//printf("Copying: ");
 	for(i=0; i<n; i++) {
-		//printf("%d ", from[i]);
 		to[i] = from[i];
 	}
-	//printf("\n");
 }
 
 void print_code(codeword_list *a_code, codeword_list *b_code, uint8_t n) {
@@ -82,14 +79,11 @@ void print_code(codeword_list *a_code, codeword_list *b_code, uint8_t n) {
 
 int lee_distance(uint8_t* x, uint8_t *y, uint8_t n) {
 	int i, ld = 0;
-	//printf("Lee distance\n");
 	for(i=0; i<n; i++) {
-		//printf("%d %d\n", x[i], y[i]);
 		ld += MIN((x[i]-y[i]), ALPHABET_LEN-(x[i]-y[i]));
 	}
 	ld %= ALPHABET_LEN;
 	ld = abs(ld);
-	//printf("distance=%d\n", ld);
 	return ld;
 }
 
@@ -133,8 +127,6 @@ codeword_list *create_search_space(uint8_t n) {
 				break;
 		}
 	}
-	//print_code(space, NULL, n);
-	//exit(0);
 	return space;
 }
 
@@ -208,10 +200,10 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 				}
 			}
 		}
+		delete_codeword_list(next_candidates);
+		delete_codeword_list(next_b_candidates);
 		code->index--;
 	}
-	delete_codeword_list(next_candidates);
-	delete_codeword_list(next_b_candidates);
 	return longest;
 }
 
