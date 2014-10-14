@@ -3,12 +3,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <vector>
-#include <map>
-#include <iterator>
-#include <algorithm>
-#include <sstream>
-
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
 #define ALPHABET_LEN 7
@@ -190,24 +184,12 @@ uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
 	return longest;
 }
 
-std::map<std::basic_string<char>, bool> duplicates;
-
-bool byte_comp (uint8_t i, uint8_t j) {
-	return (i<j);
-}
 
 int is_duplicate(uint8_t *codeword, int n) {
-	std::ostringstream oss;
-	std::vector<uint8_t> vec(codeword, codeword + n);
-	std::pair<std::map<std::basic_string<char>, bool>::iterator,bool> ret;
-	
-	std::sort(vec.begin(), vec.end(), byte_comp);
-    std::copy(vec.begin(), vec.end(), std::ostream_iterator<uint8_t>(oss, ""));
-	duplicates.insert(std::pair<std::basic_string<char>, bool>(oss.str(),true));
-	if (ret.second==false)
-		// Already exists
-		return 1;
-
+	int i;
+	for(i=1; i<n; i++)
+		if(codeword[i] < codeword[i-1])
+			return 1;
 	return 0;
 }
 
