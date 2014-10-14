@@ -202,7 +202,7 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 	int i, j;
 	
 	while (candidates->index--) {
-		if(code->index == 2) {
+		if(code->index == 1) {
 			if (is_duplicate(candidates->codewords + candidates->index*n, n))
 				continue;
 		}
