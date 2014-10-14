@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <vector>
+#include <map>
+#include <iterator>
+#include <algorithm>
+#include <sstream>
+
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
 #define ALPHABET_LEN 7
@@ -20,11 +26,11 @@ typedef struct codeword_list_t {
 
 codeword_list *new_codeword_list(uint8_t n, int size) {
 	codeword_list *cw_list;
-	cw_list = malloc(sizeof(cw_list));
+	cw_list = (codeword_list*) malloc(sizeof(cw_list));
 	if (cw_list==NULL)
 		exit(1);
 	cw_list->index = 0;
-	cw_list->codewords = malloc(size * n);
+	cw_list->codewords = (uint8_t*) malloc(size * n);
 	if (cw_list->codewords==NULL)
 		exit(1);
 	int i;
@@ -184,6 +190,27 @@ uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
 	return longest;
 }
 
+std::map<std::basic_string<char>, bool> duplicates;
+
+bool byte_comp (uint8_t i, uint8_t j) {
+	return (i<j);
+}
+
+int is_duplicate(uint8_t *codeword, int n) {
+	std::ostringstream oss;
+	std::vector<uint8_t> vec(codeword, codeword + n);
+	std::pair<std::map<std::basic_string<char>, bool>::iterator,bool> ret;
+	
+	std::sort(vec.begin(), vec.end(), byte_comp);
+    std::copy(vec.begin(), vec.end(), std::ostream_iterator<uint8_t>(oss, ""));
+	duplicates.insert(std::pair<std::basic_string<char>, bool>(oss.str(),true));
+	if (ret.second==false)
+		// Already exists
+		return 1;
+
+	return 0;
+}
+
 int find_iso(codeword_list *code, codeword_list *candidates,
 			 codeword_list *b_candidates, uint8_t n, uint8_t min_ld,
 			 uint8_t min_iso, uint16_t a_len, uint16_t min_b_len,
@@ -193,6 +220,10 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 	int i, j;
 	
 	while (candidates->index--) {
+		if(code->index == 2) {
+			if (is_duplicate(candidates->codewords + candidates->index*n, n))
+				continue;
+		}
 		copy_codeword(candidates->codewords, candidates->index,
 					  code->codewords, code->index++, n);
 		
