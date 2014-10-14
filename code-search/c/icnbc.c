@@ -7,6 +7,8 @@
 
 #define ALPHABET_LEN 7
 
+uint8_t LD[ALPHABET_LEN][ALPHABET_LEN];
+
 void usage(char *argv0) {
 	fprintf(stderr, "%s: <n> <min_ld> <min_iso>\n", argv0);
 }
@@ -79,25 +81,43 @@ void print_code(codeword_list *a_code, codeword_list *b_code, uint8_t n) {
 
 int lee_distance(uint8_t* x, uint8_t *y, uint8_t n) {
 	int i, ld = 0;
+	uint8_t diff;
 	for(i=0; i<n; i++) {
-		ld += MIN((x[i]-y[i]), ALPHABET_LEN-(x[i]-y[i]));
+		diff = abs(x[i]-y[i]);
+		ld += MIN(diff, ALPHABET_LEN-diff);
 	}
-	ld %= ALPHABET_LEN;
-	ld = abs(ld);
+	return ld;
+}
+
+void precompute_ld() {
+	int i, j;
+	uint8_t diff;
+	for(i=0; i<ALPHABET_LEN; i++) {
+		for(j=0; j<ALPHABET_LEN; j++) {
+			diff = abs(i-j);
+			LD[i][j] = MIN(diff, ALPHABET_LEN-diff);
+		}
+	}
+}
+
+int quick_lee_distance(uint8_t* x, uint8_t *y, uint8_t n) {
+	int i, ld = 0;
+	for(i=0; i<n; i++) {
+		ld += LD[x[i]][y[i]];
+	}
 	return ld;
 }
 
 codeword_list* populate_candidates(codeword_list* code,
 								   codeword_list *candidates,
-								   uint8_t n, uint8_t min_dist)
-{
+								   uint8_t n, uint8_t min_dist) {
 	codeword_list* next_candidates;
 	int i;
 	next_candidates = new_codeword_list(n, candidates->index);
 	next_candidates->index = 0;
 	uint8_t *codeword = code->codewords + (code->index-1)*n;
 	for (i=0; i<candidates->index; i++) {
-		if (lee_distance(candidates->codewords + n*i, codeword, n) >= min_dist) {
+		if (quick_lee_distance(candidates->codewords + n*i, codeword, n) >= min_dist) {
 			copy_codeword(candidates->codewords, i, next_candidates->codewords,
 						  next_candidates->index++, n);
 		}
@@ -256,7 +276,7 @@ int main(int argc, char** argv)
 		usage(argv[0]);
 		exit(1);
 	}
-
+	
 	uint8_t n, min_ld, min_iso;
 	if ((n 		 = atoi(argv[1])) == 0 ||
 		(min_ld  = atoi(argv[2])) == 0 ||
@@ -265,6 +285,7 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 	
+	precompute_ld();
 	find_best_iso(n, min_ld, min_iso);
 
 	return 0;

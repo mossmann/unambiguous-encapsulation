@@ -15,7 +15,7 @@ def usage():
 def lee_distance(x, y):
 	if len(x) != len(y):
 		log("Uneven code lengths: " + str(x) + " " + str(y))
-	ld = sum([min((a-b), ALPHABET_LEN-(a-b))
+	ld = sum([min(abs(a-b), ALPHABET_LEN-abs(a-b))
 			  for a, b in zip(x, y)])
 	return ld
 
