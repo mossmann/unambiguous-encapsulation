@@ -198,14 +198,13 @@ void find_best_iso(uint8_t n, uint8_t min_hd, uint8_t min_iso, uint16_t a_len)
 {
 	uint16_t min_b_len, longest, longest_b;
 	min_b_len = 2;
-	longest = a_len * 2;
 	
-	for (; longest >= (a_len * 2); a_len++) {
+	do {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(0, n, min_hd, min_iso, a_len, min_b_len);
 			min_b_len = longest - a_len - 3;
-	}
+	} while (longest > (a_len++ * 2));
 }
 
 int main(int argc, char** argv)
