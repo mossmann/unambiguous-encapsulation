@@ -14,7 +14,7 @@ uint8_t LD[ALPHABET_LEN][ALPHABET_LEN];
 uint8_t find_longest;
 
 void usage(char *argv0) {
-	fprintf(stderr, "%s: [-l] <n> <min_ld> <min_iso>\n", argv0);
+	fprintf(stderr, "%s: [-l] <n> <min_ld> <min_iso> [<a_len>]\n", argv0);
 	fprintf(stderr, "\t-l  Find the longest code\n");
 }
 
@@ -272,15 +272,15 @@ int find_iso_from_start(uint8_t n, uint8_t min_ld, uint8_t min_iso,
 	return longest;
 }
 
-void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso)
+void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso, uint16_t a_len)
 {
-	uint16_t a_len, min_b_len, longest, longest_b;
+	uint16_t min_b_len, longest, longest_b;
 	codeword_list *candidates;
 	min_b_len = 2;
 	candidates = create_search_space(n);
 	longest = 4;
 	
-	for (a_len = 2; longest >= (a_len * 2); a_len++) {
+	for (; longest >= (a_len * 2); a_len++) {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(n, min_ld, min_iso, a_len, min_b_len,
@@ -311,13 +311,18 @@ int main(int argc, char** argv)
 	uint8_t n, min_ld, min_iso;
 	if ((n 		 = atoi(argv[optind++])) == 0 ||
 		(min_ld  = atoi(argv[optind++])) == 0 ||
-		(min_iso = atoi(argv[optind])) == 0) {
+		(min_iso = atoi(argv[optind++])) == 0) {
 		usage(argv[0]);
 		exit(1);
 	}
 	
+	int a_len = 2;
+	if (argc > optind) {
+		a_len = atoi(argv[optind]);
+	}
+	
 	precompute_ld();
-	find_best_iso(n, min_ld, min_iso);
+	find_best_iso(n, min_ld, min_iso, a_len);
 
 	return 0;
 }
