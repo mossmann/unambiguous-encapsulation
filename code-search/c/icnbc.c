@@ -278,7 +278,7 @@ void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso, uint16_t a_len)
 	codeword_list *candidates;
 	min_b_len = 2;
 	candidates = create_search_space(n);
-	longest = 4;
+	longest = a_len * 2;
 	
 	for (; longest >= (a_len * 2); a_len++) {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
