@@ -277,15 +277,15 @@ void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso)
 	codeword_list *candidates;
 	min_b_len = 2;
 	candidates = create_search_space(n);
+	longest = 4;
 	
-	for (a_len = pow(ALPHABET_LEN, n-1); a_len >= min_b_len; a_len--) {
+	for (a_len = 2; longest >= (a_len * 2); a_len++) {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(n, min_ld, min_iso, a_len, min_b_len,
 									  candidates);
-		if (longest >= (a_len + min_b_len)) {
-			min_b_len = longest - a_len + 1;
-		}
+		min_b_len = longest - a_len - 2;
+
 	}
 	delete_codeword_list(candidates);
 
