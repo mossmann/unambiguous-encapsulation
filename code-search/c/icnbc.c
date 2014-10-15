@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -9,8 +10,12 @@
 
 uint8_t LD[ALPHABET_LEN][ALPHABET_LEN];
 
+// Here due to my laziness
+uint8_t find_longest;
+
 void usage(char *argv0) {
-	fprintf(stderr, "%s: <n> <min_ld> <min_iso>\n", argv0);
+	fprintf(stderr, "%s: [-l] <n> <min_ld> <min_iso>\n", argv0);
+	fprintf(stderr, "\t-l  Find the longest code\n");
 }
 
 typedef struct codeword_list_t {
@@ -27,9 +32,6 @@ codeword_list *new_codeword_list(uint8_t n, int size) {
 	cw_list->codewords = (uint8_t*) malloc(size * n);
 	if (cw_list->codewords==NULL)
 		exit(1);
-	int i;
-	for(i=0; i<size*n; i++)
-		cw_list->codewords[i] = 0x0f;
 	return cw_list;
 }
 
@@ -38,7 +40,7 @@ void delete_codeword_list(codeword_list *list) {
 	free(list);
 }
 
-static inline void copy_codeword(uint8_t *src, int src_offset,
+void copy_codeword(uint8_t *src, int src_offset,
 								 uint8_t *dst, int dst_offset,
 								 int n) {
 	int i;
@@ -171,6 +173,8 @@ uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
 					if (best_len >= min_len) {
 						longest = best_len;
 						min_len = best_len;
+						if(find_longest==1)
+							min_len++;
 					}
 				} else {
 					print_code(a_code, b_code, n);
@@ -221,6 +225,8 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
+					if(find_longest==1)
+						min_len++;
 				}
 				delete_codeword_list(b_code);
 			}
@@ -230,6 +236,8 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
+					if(find_longest==1)
+						min_len++;
 				}
 			}
 		}
@@ -285,15 +293,24 @@ void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso)
 
 int main(int argc, char** argv)
 {
-	if (argc < 4) {
+	char c;
+	find_longest = 0;
+	while ( (c = getopt(argc, argv, "l")) != -1) {
+		switch (c) {
+		case 'l':
+			find_longest = 1;
+			break;
+		}
+	}
+	if (argc-optind < 3) {
 		usage(argv[0]);
 		exit(1);
 	}
 	
 	uint8_t n, min_ld, min_iso;
-	if ((n 		 = atoi(argv[1])) == 0 ||
-		(min_ld  = atoi(argv[2])) == 0 ||
-		(min_iso = atoi(argv[3])) == 0) {
+	if ((n 		 = atoi(argv[optind++])) == 0 ||
+		(min_ld  = atoi(argv[optind++])) == 0 ||
+		(min_iso = atoi(argv[optind])) == 0) {
 		usage(argv[0]);
 		exit(1);
 	}

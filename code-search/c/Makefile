@@ -11,7 +11,7 @@ lcbbc_flags: lcbbc_flags.c
 	gcc -mpopcnt -O3 -o lcbbc_flags lcbbc_flags.c
 
 icnbc: icnbc.c
-	g++ -mpopcnt -g -O3 -o icnbc icnbc.c -lm
+	gcc -g -O3 -o icnbc icnbc.c -lm
 
 clean:
 	rm -f icblbc lcbbc lcbbc_flags
