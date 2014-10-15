@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -10,14 +11,18 @@ const uint8_t HAMMING_WEIGHT[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4
 
 uint16_t HD[MAX_CAND][MAX_CAND];
 
+// Here due to my laziness
+uint8_t find_longest;
+
 uint16_t hamming_distance(int a, int b)
 {
 	return HAMMING_WEIGHT[a ^ b];
 }
 
 void usage(char *argv0) {
-	fprintf(stderr, "%s: <n> <min_hd> <min_iso>\n", argv0);
-	fprintf(stderr, "    MAX_N = %d\n", MAX_N);
+	fprintf(stderr, "%s: [-l] <n> <min_hd> <min_iso> [<a_len>]\n", argv0);
+	fprintf(stderr, "\t-l  Find the longest code\n");
+	fprintf(stderr, "\tMAX_N = %d\n", MAX_N);
 }
 
 /* fill big lookup table of hamming distances */
@@ -71,6 +76,8 @@ uint16_t find_comp(uint16_t* a_code, uint16_t ia_code, uint16_t* b_code,
 					if (best_len >= min_len) {
 						longest = best_len;
 						min_len = best_len;
+						if(find_longest==1)
+							min_len++;
 					}
 				} else {
 					printf("%d %d %d [", ia_code + ib_code, ia_code, ib_code);
@@ -127,6 +134,8 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
+					if(find_longest==1)
+						min_len++;
 				}
 			}
 			if ((inext_cand) && (icode < a_len)) {
@@ -136,6 +145,8 @@ uint16_t find_iso(uint16_t* code, uint16_t icode, uint16_t* candidates,
 				if (best_len >= min_len) {
 					longest = best_len;
 					min_len = best_len;
+					if(find_longest==1)
+						min_len++;
 				}
 			}
 		}
@@ -183,46 +194,49 @@ uint16_t find_iso_from_start(uint16_t start, uint8_t n, uint8_t min_hd,
 			min_iso, a_len, min_b_len, n, a_len + min_b_len);
 }
 
-void find_best_iso(uint8_t n, uint8_t min_hd, uint8_t min_iso)
+void find_best_iso(uint8_t n, uint8_t min_hd, uint8_t min_iso, uint16_t a_len)
 {
-	uint16_t min_b_len = 2;
-	uint16_t a_len;
-	uint16_t longest, longest_b;
-
-	for (a_len = 1<<(n-1); a_len >= min_b_len; a_len--) {
+	uint16_t min_b_len, longest, longest_b;
+	min_b_len = 2;
+	longest = a_len * 2;
+	
+	for (; longest >= (a_len * 2); a_len++) {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(0, n, min_hd, min_iso, a_len, min_b_len);
-		if (longest >= (a_len + min_b_len)) {
-			min_b_len = longest - a_len + 1;
-		}
-
+			min_b_len = longest - a_len - 3;
 	}
 }
 
 int main(int argc, char** argv)
 {
-	if (argc < 4) {
+	char c;
+	find_longest = 0;
+	while ( (c = getopt(argc, argv, "l")) != -1) {
+		switch (c) {
+		case 'l':
+			find_longest = 1;
+			break;
+		}
+	}
+	if (argc-optind < 3) {
 		usage(argv[0]);
 		exit(1);
 	}
-
-	int n, min_hd, min_iso;
-
-	if ((n 		 = atoi(argv[1])) == 0 ||
-		(min_hd  = atoi(argv[2])) == 0 ||
-		(min_iso = atoi(argv[3])) == 0) {
+	
+	uint8_t n, min_hd, min_iso;
+	if ((n 		 = atoi(argv[optind++])) == 0 ||
+		(min_hd  = atoi(argv[optind++])) == 0 ||
+		(min_iso = atoi(argv[optind++])) == 0) {
 		usage(argv[0]);
 		exit(1);
 	}
-
+	
+	int a_len = 2;
+	if (argc > optind) {
+		a_len = atoi(argv[optind]);
+	}
+	
 	precompute_hd();
-	//find_all_codes(8, 4);
-	//find_from_start(0, 6, 4);
-	//find_iso_from_start(0, 7, 2, 3, 60, 2);
-	//find_iso_from_start(0, 5, 2, 3, 4, 4);
-	//find_best_iso(6, 2, 3);
-	find_best_iso(n, min_hd, min_iso);
-
-	return 0;
+	find_best_iso(n, min_hd, min_iso, a_len);
 }
