@@ -53,32 +53,28 @@ void copy_codeword(uint8_t *src, int src_offset,
 }
 
 void print_code(codeword_list *a_code, codeword_list *b_code, uint8_t n) {
-	int i,j,k;
-	if (b_code)
-		printf("%d %d %d [", a_code->index + b_code->index, a_code->index, b_code->index);
-	else
-		printf("%d [", a_code->index);
+	int i,j,k, cp=0;
+	codeword_list *code, *code_ptrs[] = {a_code, b_code, NULL};
 	
-	for(i=0; i<a_code->index; i++) {
-		j = i*n;
-		printf("(");
-		for(k=j; k<j+n-1; k++)
-			printf("%d, ", a_code->codewords[k]);
-		printf("%d", a_code->codewords[k]);
-		printf("), ");
-	}
-	if (b_code) {
-		printf("] [");
-		for(i=0; i<b_code->index; i++) {
+	if (b_code)
+		printf("%d %d %d", a_code->index + b_code->index, a_code->index, b_code->index);
+	else
+		printf("%d", a_code->index);
+	
+	while(code = code_ptrs[cp++]) {
+		printf(" [");
+		for(i=0; i<code->index; i++) {
 			j = i*n;
 			printf("(");
 			for(k=j; k<j+n-1; k++)
-				printf("%d, ", b_code->codewords[k]);
-			printf("%d", b_code->codewords[k]);
-			printf("), ");
+				printf("%d, ", code->codewords[k]);
+			printf("%d)", code->codewords[k]);
+			if(i!=code->index-1)
+				printf(", ");
 		}
+		printf("]");
 	}
-	printf("]\n");
+	printf("\n");
 }
 
 int lee_distance(uint8_t* x, uint8_t *y, uint8_t n) {
@@ -188,7 +184,6 @@ uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
 	}
 	return longest;
 }
-
 
 int is_duplicate(uint8_t *codeword, int n) {
 	int i;
