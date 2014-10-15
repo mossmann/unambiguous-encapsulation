@@ -183,6 +183,7 @@ uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
 				}
 			}
 		}
+		delete_codeword_list(next_candidates);
 		b_code->index--;
 	}
 	return longest;
