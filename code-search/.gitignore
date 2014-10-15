@@ -1,6 +1,7 @@
 # C binary
 c/icblbc
 c/lcbbc
+c/icnbc
 c/lcbbc_flags
 
 # Quartus output files
