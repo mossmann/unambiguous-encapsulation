@@ -19,7 +19,7 @@ void usage(char *argv0) {
 }
 
 typedef struct codeword_list_t {
-	uint16_t index;
+	uint32_t index;
 	uint8_t *codewords;
 } codeword_list;
 
@@ -53,15 +53,16 @@ void copy_codeword(uint8_t *src, int src_offset,
 }
 
 void print_code(codeword_list *a_code, codeword_list *b_code, uint8_t n) {
-	int i,j,k, cp=0;
-	codeword_list *code, *code_ptrs[] = {a_code, b_code, NULL};
+	int i,j,k;
+	codeword_list *code, **ptr, *code_ptrs[] = {a_code, b_code, NULL};
+	ptr = code_ptrs;
 	
 	if (b_code)
 		printf("%d %d %d", a_code->index + b_code->index, a_code->index, b_code->index);
 	else
 		printf("%d", a_code->index);
 	
-	while(code = code_ptrs[cp++]) {
+	while(code = *ptr++) {
 		printf(" [");
 		for(i=0; i<code->index; i++) {
 			j = i*n;
@@ -273,16 +274,15 @@ void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso, uint16_t a_len)
 	codeword_list *candidates;
 	min_b_len = 2;
 	candidates = create_search_space(n);
-	longest = a_len * 2;
 	
-	for (; longest >= (a_len * 2); a_len++) {
+	do {
 		printf("trying a: %d, min b: %d, total: %d\n", a_len,
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(n, min_ld, min_iso, a_len, min_b_len,
 									  candidates);
 		min_b_len = longest - a_len - 3;
 
-	}
+	} while (longest > (a_len++ * 2));
 	delete_codeword_list(candidates);
 
 }
