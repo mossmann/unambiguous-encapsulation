@@ -280,7 +280,7 @@ void find_best_iso(uint8_t n, uint8_t min_ld, uint8_t min_iso, uint16_t a_len)
 				min_b_len, a_len + min_b_len);
 		longest = find_iso_from_start(n, min_ld, min_iso, a_len, min_b_len,
 									  candidates);
-		min_b_len = longest - a_len - 3;
+		min_b_len = ((longest - a_len - 5) >= 2) ? longest - a_len - 5 : 2;
 
 	} while (longest > (a_len++ * 2));
 	delete_codeword_list(candidates);
