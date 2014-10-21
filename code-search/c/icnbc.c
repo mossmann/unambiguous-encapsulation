@@ -186,7 +186,8 @@ uint16_t find_comp(codeword_list *a_code, codeword_list *b_code,
 	return longest;
 }
 
-int is_duplicate(uint8_t *codeword, int n) {
+int is_duplicate(codeword_list *candidates, int n) {
+	uint8_t *codeword = candidates->codewords + candidates->index*n;
 	int i;
 	for(i=1; i<n; i++)
 		if(codeword[i] < codeword[i-1])
@@ -204,7 +205,7 @@ int find_iso(codeword_list *code, codeword_list *candidates,
 	
 	while (candidates->index--) {
 		if(code->index == 1) {
-			if (is_duplicate(candidates->codewords + candidates->index*n, n))
+			if (is_duplicate(candidates, n))
 				continue;
 		}
 		copy_codeword(candidates->codewords, candidates->index,
