@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define MAX_N    12
+#define MAX_N    16
 #define MAX_CAND (1 << MAX_N)
 
 uint8_t HD[MAX_CAND][MAX_CAND];
@@ -18,8 +18,7 @@ void precompute_hd(int min_hd)
 	int i, j;
 	for (i = 0; i < MAX_CAND; i++)
 		for (j = 0; j < MAX_CAND; j++)
-			/* FIXME store as bits in bytes and
-			 * use popcount to remove MAX_N limitation
+			/* FIXME store as bits in bytes
 			 */
 			if(__builtin_popcount(i ^ j) >= min_hd)
 				HD[i][j] = 1;
