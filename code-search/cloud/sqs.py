@@ -52,7 +52,7 @@ def write_from_file(filename):
 
 def upload(filename):
 	conn = S3Connection()
-	bucket = conn.get_bucket('unambiguousencapsulation')
+	bucket = conn.get_bucket('unambiguous-encapsulation')
 	key = Key(bucket)
 	key.key = os.path.basename(filename)
 	with open(filename) as f:
