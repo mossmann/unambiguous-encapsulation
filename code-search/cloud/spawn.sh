@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PATH=$PATH:~/unambiguous-encapsulation/code-search/c
+PATH=$PATH:~/unambiguous-encapsulation/code-search/c:~/unambiguous-encapsulation/code-search/cloud
 
 SQS=sqs.py
 
