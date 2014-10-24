@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-import boto.sqs
-from boto.sqs.message import Message
+import os.path
+import sys
 import time
 
+import boto.sqs
+from boto.sqs.message import Message
 from boto.s3.connection import S3Connection
+from boto.s3.key import Key
 
 # AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 # must be set in your environment
@@ -48,18 +51,13 @@ def write_from_file(filename):
 		print "%d messages written from '%s'" % (i, filename)
 
 def upload(filename):
-	queue = fetch_queue('UE-results')
+	conn = S3Connection()
+	bucket = conn.get_bucket('unambiguousencapsulation')
+	key = Key(bucket)
+	key.key = os.path.basename(filename)
 	with open(filename) as f:
-		msg = Message()
-		msg.message_attributes = {
-			"args": {
-				"data_type": "String",
-				"string_value": filename
-			}
-		}
-		msg.set_body(f.read())
-		queue.write(msg)
-		print "%s output uploaded" % filename
+		key.set_contents_from_string(f.read())
+	print "%s Uploades to S3" % filename
 
 def usage(name):
 	print '%s <command> [args]' % name
@@ -70,7 +68,6 @@ def usage(name):
 	print '\t\tupload <filename>'
 
 if __name__ == '__main__':
-	import sys
 	if len(sys.argv) < 2:
 		usage(sys.argv[0])
 		sys.exit(1)

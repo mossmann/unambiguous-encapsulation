@@ -1,14 +1,18 @@
 #!/bin/bash
 
-CPUS=`fgrep processor /proc/cpuinfo | wc -l`
+PATH=$PATH:~/unambiguous-encapsulation/code-search/c
 
-SQS=./sqs.py
+SQS=sqs.py
 
-CMD=`$SQS read`
+while true; do 
+	CMD=`$SQS read`
+	if [ "$CMD" = "kill" ]; then
+		exit 0
+	fi
+	
+	OUTPUT=~/output/`echo $CMD | sed -e "s/ /_/"`.out
 
-OUTPUT=`echo $CMD | sed -e "s/ /_/"`.out
+	$CMD > $OUTPUT
 
-echo "$CMD > $OUTPUT"
-$CMD > $OUTPUT
-
-$SQS upload $OUTPUT
+	$SQS upload $OUTPUT
+done
