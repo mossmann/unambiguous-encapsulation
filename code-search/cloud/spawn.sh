@@ -10,7 +10,7 @@ while true; do
 		exit 0
 	fi
 	
-	OUTPUT=~/output/`echo $CMD | sed -e "s/ /_/"`.txt
+	OUTPUT=/home/ubuntu/output/`echo $CMD | sed -e "s/ /_/g"`.txt
 
 	$CMD > $OUTPUT
 
