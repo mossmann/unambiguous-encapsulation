@@ -7,20 +7,10 @@
 #define MAX_N    16
 #define MAX_CAND (1 << MAX_N)
 
-const uint8_t HAMMING_WEIGHT[] = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7, 4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8};
-
 uint16_t HD[MAX_CAND][MAX_CAND];
 
 // Here due to my laziness
 uint8_t find_longest;
-
-uint16_t hamming_distance(int a, int b)
-{
-	uint16_t weight;
-	weight = HAMMING_WEIGHT[(a&0xff) ^ (b&0xff)];   
-	weight += HAMMING_WEIGHT[((a>>8)&0xff) ^ ((b>>8)&0xff)];
-	return weight;
-}
 
 void usage(char *argv0) {
 	fprintf(stderr, "%s: [-l] <n> <min_hd> <min_iso> [<a_len>]\n", argv0);
@@ -34,7 +24,7 @@ void precompute_hd()
 	int i, j;
 	for (i = 0; i < MAX_CAND; i++)
 		for (j = 0; j < MAX_CAND; j++)
-			HD[i][j] = hamming_distance(i, j);
+			HD[i][j] = __builtin_popcount(i ^ j);
 }
 
 void populate_candidates(uint16_t code, uint16_t *candidates,

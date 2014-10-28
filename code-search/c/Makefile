@@ -2,7 +2,7 @@
 all: icblbc lcbbc lcbbc_flags icnbc
 
 icblbc: icblbc.c
-	gcc -o icblbc icblbc.c
+	gcc -mpopcnt -O3 -o icblbc icblbc.c
 
 lcbbc: lcbbc.c
 	gcc -mpopcnt -O3 -o lcbbc lcbbc.c
