@@ -17,7 +17,7 @@ module tb_icnbc;
   reg [N-1:0] n;
   reg         start;
   reg [N-1:0] min_ld;
-  wire [N-1:0] codes;
+  wire [3:0] codes [N-1:0];
 
   initial
     begin
@@ -49,7 +49,7 @@ module tb_icnbc;
   icnbc #(.N(N),.depth(MEM_DEPTH),.width(N)) LCBBC_INST
     (/*AUTOINST*/
      // Outputs
-     .codes                             (codes[N-1:0]),
+     .codes                             (codes[3:0][N-1:0]),
      // Inputs
      .clk                               (clk),
      .rst                               (rst),

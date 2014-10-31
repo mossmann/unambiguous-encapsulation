@@ -33,7 +33,7 @@ module icnbc
     
 
   reg [2:0]           state, nxt_state;
-  reg [3:0]         counterl[N-1:0], nxt_counterl[N-1:0], counterh[N-1:0], nxt_counterh[N-1:0];
+  reg [3:0] counterl[N-1:0], nxt_counterl[N-1:0], counterh[N-1:0], nxt_counterh[N-1:0];
   
   reg [addr_sz-1:0]   codelength, nxt_codelength;
   reg [addr_sz-1:0]   count, nxt_count;
@@ -60,8 +60,8 @@ module icnbc
   
 
  
-  reg [N-1:0]         summation;
-  reg [N-1:0]         candidate;
+  reg [3:0]         summation [N-1:0];
+  reg [3:0]         candidate [N-1:0];
   
   reg                 wr_en, rd_en;
   reg [width-1:0]     d_in;
@@ -119,7 +119,7 @@ module icnbc
                 if(counterl == 2**N-1)
                   nxt_counterh = counterh + 1;
                 
-               	summation = sum(counterl ^ counterh); //function call
+               	summation = sum(counterl, counterh); //function call
 		if( summation >= min_ld )
 		  begin
 		    //LD[counterl] = counterl;
@@ -211,7 +211,10 @@ module icnbc
   
   
   
-  function [N-1:0] sum(input [N-1:0] input_vector);
+  function [N-1:0] sum(
+	input [3:0] input_vector_a [N-1:0],
+	input [3:0] input_vector_b [N-1:0]
+	);
     integer       k;
     reg [N-1:0]   temp;
     
@@ -219,7 +222,7 @@ module icnbc
       temp = 0;
       for(k=0; k < N; k=k+1)
         begin
-          temp = temp + input_vector[k];
+          temp = temp + input_vector[k][3:0];
         end
       sum = temp;
     end
